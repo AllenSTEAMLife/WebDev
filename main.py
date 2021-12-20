@@ -121,6 +121,10 @@ class User:
 def landing():
   return render_template("home.html")
 
+@app.route("/about")
+def route_about():
+  return render_template("about.html")
+
 @app.route("/courses")
 def route_courses():
   return render_template("courses.html")
@@ -132,6 +136,10 @@ def route_map():
 @app.route("/clubs")
 def route_clubs_list():
   return render_template("clubs.html")
+
+@app.route("/service")
+def route_service():
+  return render_template("service.html")
 
 @app.route("/events")
 def route_events():
