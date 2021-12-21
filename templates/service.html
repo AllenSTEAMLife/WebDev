@@ -326,6 +326,9 @@
           function dateToNum(date) {
             var dateNum = 0;
             var splitDate = date.split('/');
+            const today = new Date();
+            var currentYear = parseInt(today.getFullYear().toString()[2]+today.getFullYear().toString()[3]);
+            if (parseInt(splitDate[2]) >= currentYear) {
             leapChange(splitDate[2]);
             //this adds the days from the months that have passed
             for (var i=0; i<parseInt(splitDate[0])-1; i++) { dateNum += daysInMonths[i]; }
@@ -336,26 +339,49 @@
               if (leapYear(i)) { dateNum += 366; }
               else { dateNum += 365; }
             }
+            }
             return dateNum;
           }
           function sortArray(array) {
-            var lowestVal = 100000000000;
+            const date = new Date();
+            var today = `${date.getMonth()+1}/${date.getDate()}/${date.getFullYear().toString()[2]+date.getFullYear().toString()[3]}`;
+            var todayNum = dateToNum(today);
+            var lowestVal;
             var sortedArray = [];
             for (var index = 0; index < array.length; index++) {
-              var currentVal = dateToNum(array[index].date);
-              if (currentVal < lowestVal) {
-                lowestVal = currentVal;
-                //this places the earliest date first
-                sortedArray.unshift(array[index]);
+              lowestVal = 100000000000;
+              for (var index2 = index; index2 < array.length; index2++) {
+                var currentVal = dateToNum(array[index2].date);
+                if (currentVal < todayNum) { //this only renders upcoming service opportunities
+                  array.splice(index2,1);
+                  index2--;
+                }
+                else {
+                if (currentVal < lowestVal) {
+                  lowestVal = currentVal;
+                  var oldObj = sortedArray[index];
+                  //this places the earliest date first
+                  sortedArray[index] = array[index2];
+                  array[index2] = oldObj;
+                }
+                else if (currentVal == lowestVal) {
+                  var tempObj = sortedArray[index];
+                  //reverse the two objects if they are not alphabetically sorted when same date
+                  if (array[index2].name < tempObj.name) {
+                    sortedArray[index+1] = tempObj;
+                    sortedArray[index] = array[index2];
+                    array[index2] = tempObj;
+                  }
+                }
+              }
               }
             }
-            //once array is fully sorted (in date order), delete service hour 
-            //opportunities that have already passed from sortedArray
+            return sortedArray;
           }
           fetch('/static/service.json', {mode:'cors'}).then(function(resp) {
             return resp.json();
           }).then(function(data) {
-            dataArr = data.service;
+            dataArr = sortArray(data.service);
             numOfServices = dataArr.length;
             updateServiceListing();
             repositionFooter();
