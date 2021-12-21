@@ -265,7 +265,7 @@
               var listItem = document.createElement("div");
               listItem.id = `item${index+1}`;
               listItem.classList.add("linkItem");
-              $(`#item${index+1}`).data("link", dataArr[index].link);
+              listItem.link = dataArr[index].link;
               subServiceDisplay.appendChild(listItem);
               //Creating the name div
               var listItemName = document.createElement("div");
@@ -296,6 +296,7 @@
               //Creating the sign up link div
               var listItemLink = document.createElement("div");
               var listItemLinkA = document.createElement("a");
+              listItemLinkA.target = "_blank";
               listItemLinkA.classList.add("linkItemA");
               listItemLinkA.href = dataArr[index].link;
               var listItemLinkATxt = document.createTextNode("Signup Link");
@@ -309,7 +310,7 @@
               var listItem = document.createElement("div");
               listItem.id = `item${index+1}`;
               listItem.classList.add("linkItem");
-              $(`#item${index+1}`).data("link", dataArr[index].link);
+              listItem.link = dataArr[index].link;
               subServiceDisplay.appendChild(listItem);
               //Creating the name div
               var listItemName = document.createElement("div");
@@ -340,6 +341,7 @@
               //Creating the sign up link div
               var listItemLink = document.createElement("div");
               var listItemLinkA = document.createElement("a");
+              listItemLinkA.target = "_blank";
               listItemLinkA.classList.add("linkItemA");
               listItemLinkA.href = dataArr[index].link;
               var listItemLinkATxt = document.createTextNode("Signup Link");
@@ -352,18 +354,27 @@
               serviceListing.removeChild(serviceListing.firstChild);
             }
           }
+          function repositionFooter() {
+            $('.footerC').css("position", "relative");
+            var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
+            var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+            var elementOffset = $('.footerC').offset().top;
+            var distance = (elementOffset)+$('.footerC').outerHeight();
+            if ((vh-distance)>=0) { $('.footerC').css("position", "absolute");$('.footerC').css("bottom", "0px"); } 
+            else { $('.footerC').css("position", "relative"); }
+          }
           fetch('/static/service.json', {mode:'cors'}).then(function(resp) {
             return resp.json();
           }).then(function(data) {
             dataArr = data.service;
             numOfServices = dataArr.length;
             updateServiceListing();
+            repositionFooter();
             $(".serviceCount").text(`${numOfServices}`);
           });
           $(".subServiceDisplay").on('click', '.linkItem', function() {
-            var thisServiceID = $(this).attr("id");
-            var thisServiceLink = $(`#${thisServiceID}`).data("link");
-            window.location = thisServiceLink;
+            var thisServiceLink = this.link;
+            window.open(thisServiceLink, "_blank");
           });
           /*start of JavaScript for the search bar*/
 var array = [];
@@ -439,20 +450,13 @@ function searchResults() {
   if (txtIptL == "" || txtIptL == " ") {
     clearServiceListing(subServiceDisplay);
     updateServiceListing();
-    $('.footerC').css("position", "relative");
   }
   else {
-    $('.footerC').css("position", "relative");
-    //this is used to fix the footer positioning
-    var vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0);
-    var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
-    var elementOffset = $('.footerC').offset().top;
-    var distance = (elementOffset)+$('.footerC').outerHeight();
-    if ((vh-distance)>=0) { $('.footerC').css("position", "absolute");$('.footerC').css("bottom", "0px"); } 
-    else { $('.footerC').css("position", "relative"); }
     clearServiceListing(subServiceDisplay);
   }
   clearDiv(txtOptDiv); //this is used to make sure that the search results are cleared after each use
+  //need to make sure that this activates even when nothing is currently in the search box
+  repositionFooter(); 
   if (!txtIptL[1]) {
     $("#outputC").css("bottom",`-${$("#outputC").outerHeight()+25}px`);
     stopOffset2 = true;
