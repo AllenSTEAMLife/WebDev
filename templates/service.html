@@ -46,37 +46,8 @@
   .card.main .body .search-bar {
     margin-bottom: 20px;
   }
-  #club-social-icons {
-    font-size: 24pt;
-  }
-  #club-notice {
-    height:400px;
-    width:auto;
-    background-position:center;
-    background-size:cover;
-    background-repeat:no-repeat;
-  }
   .footer {
     font-size: 10pt;
-  }
-  .modClubLinks {
-      list-style-type:none;
-      margin:0;
-      padding:0;
-  }
-  .modClubLinks li a {
-    color:#037dff;
-    text-decoration:none;
-    padding-left:25px;
-  }
-  .modClubLinks li a:hover{
-    color:#004a99;
-    text-decoration:underline;
-  }
-  .clubDisplay ul {
-    list-style-type:none;
-    padding:0;
-    margin:0;
   }
   .gridC{
     display:grid;
@@ -193,6 +164,24 @@
     margin-top: 20px;
     margin-right:auto;
     margin-left:auto;
+  }
+  .subServiceDisplay {
+    display:flex;
+    flex-direction:row;
+    flex-wrap:wrap;
+    justify-content:space-around;
+    align-items:flex-start;
+    background-color:lightgrey;
+  }
+  .subServiceDisplay div {
+    background-color:darkgrey;
+    border-radius:16px;
+    padding:8px;
+    max-width:300px;
+  }
+  .subServiceDisplay div:hover {
+    cursor:pointer;
+    background-color:orange;
   }
   @media (max-width:466px){
   .search {
