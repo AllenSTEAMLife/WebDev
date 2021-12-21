@@ -177,7 +177,7 @@
     background-color:darkgrey;
     border-radius:16px;
     padding:8px;
-    max-width:300px;
+    width:300px;
   }
   .linkItem:hover {
     cursor:pointer;
@@ -261,14 +261,26 @@
               listItem.classList.add("linkItem");
               listItem.link = dataArr[index].link;
               subServiceDisplay.appendChild(listItem);
-              //Creating the name div
+              //Creating the title div
+              var listItemTitle = document.createElement("div");
+              listItemTitle.style.display="grid";
+              listItemTitle.style.gridTemplateColumns="265px 20px";
+              listItem.appendChild(listItemTitle);
+              serviceNames[index] = dataArr[index].name;
+                //creating the name div
               var listItemName = document.createElement("div");
               listItemName.style.fontSize = "18px";
               listItemName.style.fontWeight = "bold";
               var listItemNameTxt = document.createTextNode(`${dataArr[index].name}`);
               listItemName.appendChild(listItemNameTxt);
-              listItem.appendChild(listItemName);
-              serviceNames[index] = dataArr[index].name;
+              listItemTitle.appendChild(listItemName);
+                //creating the type bubble div
+              var listItemType = document.createElement("div");
+              listItemType.style.backgroundColor = "lightgreen"; //need to change the color based on type
+              listItemType.style.borderRadius = "20px";
+              listItemType.style.height = "20px";
+              listItemType.style.width = "20px";
+              listItemTitle.appendChild(listItemType);
               //Creating the creator div
               var listItemCreator = document.createElement("div");
               var listItemCreatorTxt = document.createTextNode(`${dataArr[index].creator}`);
