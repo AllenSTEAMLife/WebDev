@@ -141,6 +141,10 @@ def route_clubs_list():
 def route_service():
   return render_template("service.html")
 
+@app.route("/help")
+def route_help():
+  return render_template("help.html")
+
 @app.route("/events")
 def route_events():
   return render_template("events.html")
