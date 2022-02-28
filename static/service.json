@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
     "service": [
         {
@@ -73,4 +74,81 @@
             "link":"https://drive.google.com"
         }
     ]
+=======
+{
+    "service": [
+        {
+            "name":"Outdated Event",
+            "creator":"Mr. Antiquated",
+            "date":"12/21/02",
+            "description":"This event has already passed so it should not appear.",
+            "hours":"0.5",
+            "type":"S",
+            "link":"https://google.com"
+        },
+        {
+            "name":"Science Tutoring",
+            "creator":"Bob",
+            "date":"12/22/22",
+            "description":"Make sure to scroll to the end of the page when viewing this slide.",
+            "hours":"2",
+            "type":"S",
+            "link":"https://google.com"
+        },
+        {
+            "name":"Math Tutoring",
+            "creator":"Bob",
+            "date":"3/11/22",
+            "description":"Make sure to scroll to the end of the page when viewing this slide.",
+            "hours":"2",
+            "type":"M",
+            "link":"https://google.com"
+        },
+        {
+            "name":"3D Printer Repair",
+            "creator":"Mr. Intelligent",
+            "date":"3/14/22",
+            "description":"This is forty words in segments of ten done inefficiently. This is forty words in segments of ten done inefficiently. ",
+            "hours":"2",
+            "type":"A",
+            "link":"https://drive.google.com"
+        },
+        {
+            "name":"Soldering Station Repair",
+            "creator":"Mr. Intelligent",
+            "date":"4/25/22",
+            "description":"This is forty words in segments of ten done inefficiently. This is forty words in segments of ten done inefficiently. ",
+            "hours":"12",
+            "type":"T",
+            "link":"https://drive.google.com"
+        },
+        {
+            "name":"Mill Repair",
+            "creator":"Mr. Intelligent",
+            "date":"5/23/22",
+            "description":"This is forty words in segments of ten done inefficiently. This is forty words in segments of ten done inefficiently. ",
+            "hours":"4",
+            "type":"E",
+            "link":"https://drive.google.com"
+        },
+        {
+            "name":"Makerspace Cleanup",
+            "creator":"Mr. Intelligent",
+            "date":"12/31/23",
+            "description":"This is forty words in segments of ten done inefficiently. This is forty words in segments of ten done inefficiently. ",
+            "hours":"1",
+            "type":"O",
+            "link":"https://drive.google.com"
+        },
+        {
+            "name":"Workshop Cleanup",
+            "creator":"Mr. Intelligent",
+            "date":"5/22/22",
+            "description":"This is forty words in segments of ten done inefficiently. This is forty words in segments of ten done inefficiently. ",
+            "hours":"1",
+            "type":"O",
+            "link":"https://drive.google.com"
+        }
+    ]
+>>>>>>> 18d84ce3b75c2911bcd7679b97b57148d8e88ba5
 }
