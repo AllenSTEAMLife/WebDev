@@ -108,11 +108,6 @@
     align-content: center;
   }
 
-  .gridC:hover {
-    background-color: #e6e6e6;
-    cursor: pointer;
-  }
-
   .titleT {
     font-weight: bold;
     font-size: 18px;
@@ -263,6 +258,10 @@
     font-weight: bold;
   }
 
+  .upcomingAnTxt {
+    font-weight: bold;
+  }
+
   @media (max-width:466px) {
     .search {
       min-width: 350px;
@@ -300,10 +299,10 @@
 <div class="container mt-2">
   <div class="topContainer">
     <div style="height:6px;"></div>
-    <h1>Clubs and Organizations</h1>
+    <h1 class="mainTitleTxt">Clubs and Organizations</h1>
     <hr style="height:2px;">
     <div style="height:18px;"></div>
-    <p>There are various clubs and organizations at Allen ISD and more specifically- the STEAM Center. With currently
+    <p class="mainBodyTxt">There are various clubs and organizations at Allen ISD and more specifically- the STEAM Center. With currently
       over
       <span class="clubCount">40</span> <span class="steamTxtToggle">STEAM-related </span>clubs and organizations
       to-date, it can oftentimes be hard to find information
@@ -315,7 +314,7 @@
       in the club list
       to attain more information.
     </p>
-    <p>To add or modify any of the clubs below, please use these links: </p>
+    <p class="mainBodyTxt2">To add or modify any of the clubs below, please use these links: </p>
     <ul class="modClubLinks">
       <li><a class="pageLink" href="https://forms.gle/iPyTLsXRp4KpK89u8" target="_blank" rel="noreferrer noopener"
           alt="Add a club button">Add a Club/ Organization</a></li>
@@ -337,8 +336,9 @@
   </div>
   <div class="container">
     <div class="card main">
+      <div class="surroundingTypeC">
       <div id="club-select">
-        <div class="gridC" style="background-color:white;padding:0px;border-radius:0px;border:none;cursor:default;">
+        <div class="gridC" style="padding:0px;border-radius:0px;border:none;cursor:default;">
           <div class="titleT">Name</div>
           <div class="titleT">Type</div>
         </div>
@@ -346,6 +346,7 @@
         <div class="clubDisplay">
           <ul class="subClubDisplay"></ul>
         </div>
+      </div>
       </div>
       <!--Club display-->
       <div class="card-body body" id="club-body" style="display:none;">
@@ -401,10 +402,21 @@
         <h6 class="noEventTxt">No events to display.</h6>
         <div class="row">
           <div class="col-6">
-            <div class="list-group" id="list-tab" role="tablist"></div>
+            <div class="list-group upcomingListGroup" id="list-tab" role="tablist"></div>
           </div>
           <div class="col-6">
-            <div class="tab-content" id="nav-tabContent"></div>
+            <div class="tab-content upcomingTabContent" id="nav-tabContent"></div>
+          </div>
+        </div>
+        <div style="margin-top:20px;"></div>
+        <h3 class="upcomingAnTxt">Announcements</h3>
+        <h6 class="noEventAnTxt">No announcements to display.</h6>
+        <div class="row">
+          <div class="col-6">
+            <div class="list-group anListGroup" id="list-tab" role="tablist"></div>
+          </div>
+          <div class="col-6">
+            <div class="tab-content anTabContent" id="nav-tabContent"></div>
           </div>
         </div>
       </div>
@@ -419,6 +431,7 @@
   var subClubDisplay = document.querySelector(".subClubDisplay");
   var dataArr;
   var eventArr;
+  var commArr;
   var userArr;
   var userClubs;
   var firstCheck = true;
@@ -440,6 +453,43 @@
     if ((vh - distance) >= 0) { $('.footerC').css("position", "absolute"); $('.footerC').css("bottom", "0px"); }
     else { $('.footerC').css("position", "relative"); }
   }
+  function sortItems(thisDataArr) {
+    var latestDate = new Date(0, 0, 0, 0, 0, 0, 0);
+    for (var index = 0; index < thisDataArr.length; index++) {
+      latestDate = new Date(0, 0, 0, 0, 0, 0, 0);
+      for (var index2 = index; index2 < thisDataArr.length; index2++) {
+        var thisStartDateArr = thisDataArr[index2]["Start-Date"].split("/");
+        var thisStartTimeArr = thisDataArr[index2]["Start-Time"].split(":");
+        var thisDate = new Date(thisStartDateArr[2],thisStartDateArr[0],thisStartDateArr[1],thisStartTimeArr[0],thisStartTimeArr[1],0,0);
+        if (thisDate > latestDate) {
+          latestDate = thisDate;
+          var tempItem = thisDataArr[index];
+          thisDataArr[index] = thisDataArr[index2];
+          thisDataArr[index2] = tempItem;
+        }
+      }
+    }
+    return thisDataArr;
+  }
+  function sortItemsComm(thisDataArr) {
+    var latestDate = new Date(0, 0, 0, 0, 0, 0, 0);
+    for (var index = 0; index < thisDataArr.length; index++) {
+      latestDate = new Date(0, 0, 0, 0, 0, 0, 0);
+      for (var index2 = index; index2 < thisDataArr.length; index2++) {
+        var thisTimeArr = thisDataArr[index2]["Created-At"].split(",");
+        var thisStartDateArr = thisTimeArr[0].split("/");
+        var thisStartTimeArr = thisTimeArr[1].split(":");
+        var thisDate = new Date(thisStartDateArr[2],thisStartDateArr[0],thisStartDateArr[1],thisStartTimeArr[0],thisStartTimeArr[1],0,0);
+        if (thisDate > latestDate) {
+          latestDate = thisDate;
+          var tempItem = thisDataArr[index];
+          thisDataArr[index] = thisDataArr[index2];
+          thisDataArr[index2] = tempItem;
+        }
+      }
+    }
+    return thisDataArr;
+  }
   function checkIfJoinedClub(clubId) {
     var joined = false;
     var userEmailTxt = "";
@@ -457,10 +507,12 @@
         }
         firstCheck = false;
       }
-      for (var index = 0; index < userClubs.length; index++) {
-        if ((userClubs[index] == clubId) || userClubs[index] == "All") {
-          joined = true;
-          break;
+      if (userClubs) {
+        for (var index = 0; index < userClubs.length; index++) {
+          if ((userClubs[index] == clubId) || userClubs[index] == "All") {
+            joined = true;
+            break;
+          }
         }
       }
     }
@@ -495,133 +547,139 @@
     steamArray = [];
     numOfSTEAMClubs = 0;
     for (var index = 0; index < dataArr.length; index++) {
-      //this creates a new element
-      var listItem = document.createElement("LI");
-      listItem.id = `item${index + 1}`;
-      listItem.classList.add("linkItem");
-      subClubDisplay.appendChild(listItem);
-      var listItemS = document.createElement("div");
-      listItemS.classList.add("gridC");
-      if (dataArr[index]["Dept"] != "other") {
-        mainArray.push(dataArr[index]["Club-Name"]);
-        steamArray.push(dataArr[index]["Club-Name"]);
-        numOfSTEAMClubs++;
-        switch (dataArr[index]["Dept"]) {
-          case "s":
-            listItemS.style.borderLeft = "4px solid #8ac926";
-            break;
-          case "t":
-            listItemS.style.borderLeft = "4px solid #1982c4";
-            break;
-          case "e":
-            listItemS.style.borderLeft = "4px solid #6a4c93";
-            break;
-          case "a":
-            listItemS.style.borderLeft = "4px solid #ffca3a";
-            break;
-          case "m":
-            listItemS.style.borderLeft = "4px solid #ff595e";
-            break;
-          case "steam":
-            listItemS.style.borderLeft = "4px solid #669999";
-            break;
+      for (var index3 = 0; index3 < dataArr.length; index3++) {
+        if (parseInt(dataArr[index3]["ID"]) == index && parseInt(dataArr[index3]["ID"]) != 0) {
+          console.log(dataArr[index3]["ID"]);
+          //this creates a new element
+          var listItem = document.createElement("LI");
+          listItem.id = `item${index}`;
+          listItem.classList.add("linkItem");
+          subClubDisplay.appendChild(listItem);
+          var listItemS = document.createElement("div");
+          listItemS.classList.add("gridC");
+          if (dataArr[index3]["Dept"] != "other") {
+            mainArray.push(dataArr[index3]["Club-Name"]);
+            steamArray.push(dataArr[index3]["Club-Name"]);
+            numOfSTEAMClubs++;
+            switch (dataArr[index3]["Dept"]) {
+              case "s":
+                listItemS.style.borderLeft = "4px solid #8ac926";
+                break;
+              case "t":
+                listItemS.style.borderLeft = "4px solid #1982c4";
+                break;
+              case "e":
+                listItemS.style.borderLeft = "4px solid #6a4c93";
+                break;
+              case "a":
+                listItemS.style.borderLeft = "4px solid #ffca3a";
+                break;
+              case "m":
+                listItemS.style.borderLeft = "4px solid #ff595e";
+                break;
+              case "steam":
+                listItemS.style.borderLeft = "4px solid #669999";
+                break;
+            }
+          }
+          else {
+            if (steamOnlyOn) { listItem.style.display = "none"; }
+            else { listItem.style.display = "block"; }
+            mainArray.push(dataArr[index3]["Club-Name"]);
+            listItemS.style.borderLeft = "4px solid #cc3300";
+          }
+          if (colorScheme != 0) { listItemS.style.borderLeft = "4px solid #8B8B8B"; }
+          listItem.appendChild(listItemS); //this finishes the li with .gridC class div
+          //now the .gridC class div has to be added on to
+          var listItemSS1 = document.createElement("div");
+          listItemSS1.classList.add("centerGrid");
+          var listItemSS2 = document.createElement("div");//has text for type of club
+          listItemSS2.classList.add("centerGrid");
+          var listItemSS3 = document.createElement("div");
+          listItemS.appendChild(listItemSS1); listItemS.appendChild(listItemSS2); listItemS.appendChild(listItemSS3);
+          var listItemSS1A = document.createElement("a");//has text/link for name of club
+          listItemSS1A.classList.add("linkItemA");
+          //listItemSS1A.href = "";
+          listItemSS1.appendChild(listItemSS1A);
+          //now only the text has to be created for these elements
+          var listItemSS1ATxt = document.createTextNode(`${dataArr[index3]["Club-Name"]}`);
+          listItemSS1A.appendChild(listItemSS1ATxt);
+          var listItemSS2Txt;
+          if (dataArr[index3]["Subtype"]) {
+            switch (parseInt(dataArr[index3]["Type"])) {
+              case 1:
+                listItemSS2Txt = document.createTextNode(`Academic - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 2:
+                listItemSS2Txt = document.createTextNode(`Community Service Club - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 3:
+                listItemSS2Txt = document.createTextNode(`Religious Organization - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 4:
+                listItemSS2Txt = document.createTextNode(`Social Club - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 5:
+                listItemSS2Txt = document.createTextNode(`Athletic Team - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 6:
+                listItemSS2Txt = document.createTextNode(`Misc. - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 7:
+                listItemSS2Txt = document.createTextNode(`School Organization - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 8:
+                listItemSS2Txt = document.createTextNode(`Extracurricular - ${dataArr[index3]["Subtype"]}`);
+                break;
+              case 9:
+                listItemSS2Txt = document.createTextNode(`Communication - ${dataArr[index3]["Subtype"]}`);
+                break;
+            }
+          }
+          else if (parseInt(dataArr[index3]["Type"])) {
+            switch (parseInt(dataArr[index3]["Type"])) {
+              case 1:
+                listItemSS2Txt = document.createTextNode("Academic");
+                break;
+              case 2:
+                listItemSS2Txt = document.createTextNode("Community Service Club");
+                break;
+              case 3:
+                listItemSS2Txt = document.createTextNode("Religious Organization");
+                break;
+              case 4:
+                listItemSS2Txt = document.createTextNode("Social Club");
+                break;
+              case 5:
+                listItemSS2Txt = document.createTextNode("Athletic Team");
+                break;
+              case 6:
+                listItemSS2Txt = document.createTextNode("Misc.");
+                break;
+              case 7:
+                listItemSS2Txt = document.createTextNode("School Organization");
+                break;
+              case 8:
+                listItemSS2Txt = document.createTextNode("Extracurricular");
+                break;
+              case 9:
+                listItemSS2Txt = document.createTextNode("Communication");
+                break;
+            }
+          } //end of else if statement
+          else if (!parseInt(dataArr[index3]["Type"])) {
+            listItemSS2Txt = document.createTextNode("Other");
+          }
+          listItemSS2.appendChild(listItemSS2Txt);
+          console.log(listItem);
         }
       }
-      else {
-        if (steamOnlyOn) { listItem.style.display = "none"; }
-        else { listItem.style.display = "block"; }
-        mainArray.push(dataArr[index]["Club-Name"]);
-        listItemS.style.borderLeft = "4px solid #cc3300";
-      }
-      if (checked) { listItemS.style.borderLeft = "4px solid #8B8B8B"; }
-      listItem.appendChild(listItemS); //this finishes the li with .gridC class div
-      //now the .gridC class div has to be added on to
-      var listItemSS1 = document.createElement("div");
-      listItemSS1.classList.add("centerGrid");
-      var listItemSS2 = document.createElement("div");//has text for type of club
-      listItemSS2.classList.add("centerGrid");
-      var listItemSS3 = document.createElement("div");
-      listItemS.appendChild(listItemSS1); listItemS.appendChild(listItemSS2); listItemS.appendChild(listItemSS3);
-      var listItemSS1A = document.createElement("a");//has text/link for name of club
-      listItemSS1A.classList.add("linkItemA");
-      //listItemSS1A.href = "";
-      listItemSS1.appendChild(listItemSS1A);
-      //now only the text has to be created for these elements
-      var listItemSS1ATxt = document.createTextNode(`${dataArr[index]["Club-Name"]}`);
-      listItemSS1A.appendChild(listItemSS1ATxt);
-      var listItemSS2Txt;
-      if (dataArr[index]["Subtype"]) {
-        switch (parseInt(dataArr[index]["Type"])) {
-          case 1:
-            listItemSS2Txt = document.createTextNode(`Academic - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 2:
-            listItemSS2Txt = document.createTextNode(`Community Service Club - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 3:
-            listItemSS2Txt = document.createTextNode(`Religious Organization - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 4:
-            listItemSS2Txt = document.createTextNode(`Social Club - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 5:
-            listItemSS2Txt = document.createTextNode(`Athletic Team - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 6:
-            listItemSS2Txt = document.createTextNode(`Misc. - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 7:
-            listItemSS2Txt = document.createTextNode(`School Organization - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 8:
-            listItemSS2Txt = document.createTextNode(`Extracurricular - ${dataArr[index]["Subtype"]}`);
-            break;
-          case 9:
-            listItemSS2Txt = document.createTextNode(`Communication - ${dataArr[index]["Subtype"]}`);
-            break;
-        }
-      }
-      else if (parseInt(dataArr[index]["Type"])) {
-        switch (parseInt(dataArr[index]["Type"])) {
-          case 1:
-            listItemSS2Txt = document.createTextNode("Academic");
-            break;
-          case 2:
-            listItemSS2Txt = document.createTextNode("Community Service Club");
-            break;
-          case 3:
-            listItemSS2Txt = document.createTextNode("Religious Organization");
-            break;
-          case 4:
-            listItemSS2Txt = document.createTextNode("Social Club");
-            break;
-          case 5:
-            listItemSS2Txt = document.createTextNode("Athletic Team");
-            break;
-          case 6:
-            listItemSS2Txt = document.createTextNode("Misc.");
-            break;
-          case 7:
-            listItemSS2Txt = document.createTextNode("School Organization");
-            break;
-          case 8:
-            listItemSS2Txt = document.createTextNode("Extracurricular");
-            break;
-          case 9:
-            listItemSS2Txt = document.createTextNode("Communication");
-            break;
-        }
-      } //end of else if statement
-      else if (!parseInt(dataArr[index]["Type"])) {
-        listItemSS2Txt = document.createTextNode("Other");
-      }
-      listItemSS2.appendChild(listItemSS2Txt);
     }
   }
   function updateClubInListing(index17) {
     //this creates a new element
     var listItem = document.createElement("LI");
-    listItem.id = `item${index17 + 1}`;
+    listItem.id = `item${index17}`;
     listItem.classList.add("linkItem");
     subClubDisplay.appendChild(listItem);
     var listItemS = document.createElement("div");
@@ -740,8 +798,10 @@
     }
   }
   function clearEntries(eventListing) {
-    while (eventListing.firstChild) {
+    if (eventListing != null) {
+      while (eventListing.firstChild) {
       eventListing.removeChild(eventListing.firstChild);
+      }
     }
   }
   function returnEvent(eventLink, eventItems) {
@@ -758,6 +818,18 @@
     eventEntry.dataset.toggle = "list";
     eventEntry.href = `#list-${eventId}`;
     var eventEntryTxt = document.createTextNode(`${dateRange} ${eventName}`);
+    eventEntry.appendChild(eventEntryTxt);
+    return eventEntry;
+  }
+  function createAnnouncementEntry(creator, description, eventId) {
+    var eventEntry = document.createElement("a");
+    eventEntry.classList.add("list-group-item", "list-group-item-action");
+    eventEntry.style.whiteSpace = "nowrap";
+    eventEntry.style.overflow = "hidden";
+    eventEntry.style.textOverflow = "ellipsis";
+    eventEntry.dataset.toggle = "list";
+    eventEntry.href = `#anlist-${eventId}`;
+    var eventEntryTxt = document.createTextNode(`${creator}: ${description}`);
     eventEntry.appendChild(eventEntryTxt);
     return eventEntry;
   }
@@ -797,8 +869,10 @@
     return listItemDateTxt;
   }
   function clearDescriptions(desListing) {
-    while (desListing.firstChild) {
-      desListing.removeChild(desListing.firstChild);
+    if (desListing != null) {
+      while (desListing.firstChild) {
+        desListing.removeChild(desListing.firstChild);
+      }
     }
   }
   function createEventDescription(name, description, startDate, endDate, startTime, endTime, maxAttendees, eventId) {
@@ -821,6 +895,20 @@
     }
     var eventDes = document.createElement("P");
     var eventDesTxt = document.createTextNode(`${description}`);
+    eventDescription.appendChild(eventDes);
+    eventDes.appendChild(eventDesTxt);
+    return eventDescription;
+  }
+  function createAnDescription(creator, message, eventId) {
+    var eventDescription = document.createElement("div");
+    eventDescription.classList.add("tab-pane", "fade");
+    eventDescription.id = `anlist-${eventId}`;
+    var eventCreator = document.createElement("h4");
+    var eventCreatorTxt = document.createTextNode(`${creator}:`);
+    eventCreator.appendChild(eventCreatorTxt);
+    eventDescription.appendChild(eventCreator);
+    var eventDes = document.createElement("P");
+    var eventDesTxt = document.createTextNode(`${message}`);
     eventDescription.appendChild(eventDes);
     eventDes.appendChild(eventDesTxt);
     return eventDescription;
@@ -853,13 +941,19 @@
     //window.scrollTo(0, clubBody.offsetTop);
     window.scrollTo(0, clubBody.scrollHeight - 50);
     //this gets the index of the current selected object based on its id
-    var index = parseInt(clubID.replace(/^\D+/g, '')) - 1;
-    var currentObj = dataArr[index];
+    var index = parseInt(clubID.replace(/^\D+/g, ''));
+    //get the club info object with the correct id
+    var currentObj;
+    for (var index2=0; index2 < dataArr.length; index2++) {
+      if (parseInt(dataArr[index2]["ID"]) == index) {
+        currentObj = dataArr[index2];
+      }
+    }
     currentClubID = currentObj["ID"];
     $("#club-notice").css("background-color", "rgba(0,0,0,0.0)");
     $("#club-notice").css("background-image", "none");
-    if (currentObj["Banner-Image"]) { $("#club-notice").css("height", "400px"); $("#club-notice").css("background-image", `url("${currentObj["Banner-Image"]}")`); }
-    else if (checked) { $("#club-notice").css("background-image", `url("/static/iconblack-01.svg")`) }
+    if (currentObj["Banner-Image"] && currentObj["Banner-Image"] != "") { $("#club-notice").css("height", "400px"); $("#club-notice").css("background-image", `url("${currentObj["Banner-Image"]}")`); }
+    else if (colorScheme != 0) { $("#club-notice").css("background-image", `url("/static/iconblack-01.svg")`) }
     else {
       $("#club-notice").css("background-image", `url("/static/iconblack-01.svg")`)
       $("#club-notice").css("height", "250px");
@@ -889,7 +983,7 @@
         $("#club-notice").css("background-color", "#cc3300");
       }
     }
-    if (checked) { $("#club-notice").css("background-color", "#8B8B8B"); }
+    if (colorScheme != 0) { $("#club-notice").css("background-color", "#8B8B8B"); }
     //allow users to join the club
     joinDisabled = false;
     $(".joinBtn").removeClass("disabled");
@@ -1106,10 +1200,14 @@
       }
     }
     catch (error) { }
-    var eventListC = document.querySelector(".list-group");
-    var descriptionListC = document.querySelector(".tab-content");
+    var eventListC = document.querySelector(".upcomingListGroup");
+    var descriptionListC = document.querySelector(".upcomingTabContent");
+    var anListC = document.querySelector(".anListGroup");
+    var anDescriptionListC = document.querySelector(".anTabContent");
     clearEntries(eventListC);
     clearDescriptions(descriptionListC);
+    clearEntries(anListC);
+    clearDescriptions(anDescriptionListC);
     $(".noEventTxt").css("display", "block");
     try {
       //get all events for the club
@@ -1132,6 +1230,19 @@
           }
           eventListC.appendChild(createEventEntry(dateRange, currentEvent["Event-Name"], currentEvent["ID"]));
           descriptionListC.appendChild(createEventDescription(currentEvent["Event-Name"], currentEvent["Description"], cleanedSDate, cleanedEDate, currentEvent["Start-Time"], currentEvent["End-Time"], currentEvent["Max-Attendees"], currentEvent["ID"]));
+        }
+      }
+    }
+    catch (error) { }
+    $(".noEventAnTxt").css("display", "block");
+    try {
+      //get all events for the club
+      for (var index = 0; index < commArr.length; index++) {
+        var currentAnnouncement = commArr[index];
+        if (currentObj["ID"] == currentAnnouncement["Club-ID"] && currentAnnouncement["Announcement"] == "True" || parseInt(currentAnnouncement["Announcement"]) == 1) {
+          $(".noEventAnTxt").css("display", "none");
+          anListC.appendChild(createAnnouncementEntry(currentAnnouncement["Creator"], currentAnnouncement["Message"], currentAnnouncement["ID"]));
+          anDescriptionListC.appendChild(createAnDescription(currentAnnouncement["Creator"], currentAnnouncement["Message"], currentAnnouncement["ID"]));
         }
       }
     }
@@ -1393,9 +1504,15 @@
         $(".tab-pane").removeClass("show");
         $(".tab-pane").removeClass("active");
         var thisEventId = $(this).prop("href").split("#list-")[1];
-        $(`#list-${thisEventId}`).addClass("show");
-        $(`#list-${thisEventId}`).addClass("active");
-        if (checked) {
+        if (thisEventId == undefined) {
+          thisEventId = $(this).prop("href").split("#anlist-")[1];
+          $(`#anlist-${thisEventId}`).addClass("show");
+          $(`#anlist-${thisEventId}`).addClass("active");
+        } else {
+          $(`#list-${thisEventId}`).addClass("show");
+          $(`#list-${thisEventId}`).addClass("active");
+        } 
+        if (colorScheme != 0) {
           $(".list-group-item.active").css("background-color", "#242424");
         } else {
           $(".list-group-item.active").css("background-color", "#007bff");
@@ -1414,13 +1531,20 @@
     $(".userEmail").css("display", "none");
     const fetch1 = fetch('/clubs/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
     const fetch2 = fetch('/events/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
-    const fetch3 = fetch('/user/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
+    const fetch3 = fetch('/comm/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
+    //const fetch4 = fetch('/user/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
     Promise.all([fetch1, fetch2, fetch3]).then(function (JsonData) {
       mainArray = [];
       steamArray = [];
       dataArr = JsonData[0]["Items"];
       eventArr = JsonData[1]["Items"];
-      userArr = JsonData[2]["Items"];
+      eventArr = sortItems(eventArr);
+      commArr = JsonData[2]["Items"];
+      commArr = sortItemsComm(commArr);
+      try {
+        userArr = JSON.parse({{ userData | tojson | safe }})["Items"];
+      } catch (error) { }
+      //userArr = JsonData[3]["Items"];
       numOfClubs = dataArr.length;
       updateClubListing();
       repositionFooter();
@@ -1450,9 +1574,15 @@
       $(".tab-pane").removeClass("show");
       $(".tab-pane").removeClass("active");
       var thisEventId = $(this).prop("href").split("#list-")[1];
-      $(`#list-${thisEventId}`).addClass("show");
-      $(`#list-${thisEventId}`).addClass("active");
-      if (checked) {
+      if (thisEventId == undefined) {
+          thisEventId = $(this).prop("href").split("#anlist-")[1];
+          $(`#anlist-${thisEventId}`).addClass("show");
+          $(`#anlist-${thisEventId}`).addClass("active");
+        } else {
+          $(`#list-${thisEventId}`).addClass("show");
+          $(`#list-${thisEventId}`).addClass("active");
+        } 
+      if (colorScheme != 0) {
         $(".list-group-item.active").css("background-color", "#242424");
       } else {
         $(".list-group-item.active").css("background-color", "#007bff");

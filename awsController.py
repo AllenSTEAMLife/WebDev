@@ -17,7 +17,9 @@ calendarTable = Table('STEAM-APP-Calendar', connection=conn)
 clubsTable = Table('STEAM-APP-Clubs', connection=conn)
 serviceTable = Table('STEAM-APP-Service', connection=conn)
 userTable = Table('STEAM-APP-Users', connection=conn)
-
+commTable = Table('STEAM-APP-Communication', connection=conn)
+dayTable = Table('STEAM-APP-Day', connection=conn)
+logTable = Table('STEAM-APP-Log', connection=conn)
 
 def get_club_items():
     clubItems = clubsTable.scan()
@@ -35,6 +37,10 @@ def get_club_items():
             print("none of this type for object")
         try:
             itemDictionary.update({"ID" : item["id"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"Banner-Image" : item["Image"]})
         except:
             print("none of this type for object")
         try:
@@ -130,6 +136,7 @@ def get_calendar_items():
             print("none of this type for object")
         itemsList.append(itemDictionary)
     return itemsList
+
 def get_service_items():
     serviceItems = serviceTable.scan()
     listItems = list(serviceItems)
@@ -192,6 +199,61 @@ def get_service_items():
             print("none of this type for object")
         itemsList.append(itemDictionary)
     return itemsList
+def get_comm_items():
+    commItems = commTable.scan()
+    listItems = list(commItems)
+    itemsList = []
+    itemDictionary = {}
+    for item in listItems:
+        itemDictionary = {}
+        #create the item dictionary
+        try:
+            itemDictionary.update({"Club-ID" : item["clubid"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"ID" : item["id"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"Announcement" : str(item["Announcement"])})
+        except:
+            print("none of this type for object")
+        try: 
+            itemDictionary.update({"Created-At" : item["Created-At"]})
+        except:
+            print("none of this type for object")
+        try: 
+            itemDictionary.update({"Creator" : item["Creator"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"Message" : item["Message"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"To-Members" : list(item["To-Members"])})
+        except:
+            print("none of this type for object")
+        itemsList.append(itemDictionary)
+    return itemsList
+def get_day_items():
+    dayItems = dayTable.scan()
+    listItems = list(dayItems)
+    itemsList = []
+    itemDictionary = {}
+    for item in listItems:
+        itemDictionary = {}
+        try:
+            itemDictionary.update({"Day" : item["day"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"Type" : item["type"]})
+        except:
+            print("none of this type for object")
+        itemsList.append(itemDictionary)
+    return itemsList
 def get_user_items():
     userItems = userTable.scan()
     listItems = list(userItems)
@@ -230,6 +292,7 @@ def get_user_items():
             print("none of this type for object")
         itemsList.append(itemDictionary)
     return itemsList
+
 def add_club(email, name, clubId):
     userAccount = userTable.get_item(name=name, email=email)
     userClubsArr = list(userAccount["Clubs-Joined"])
@@ -241,11 +304,12 @@ def add_club(email, name, clubId):
 def add_club_owner(email, name, clubId):
     userAccount = userTable.get_item(name=name, email=email)
     userClubsArr = list(userAccount["Clubs-Owned"])
-    userClubsArr.append(clubId)
+    userClubsArr.append(str(clubId))
     if (userClubsArr[0] == ""):
         userClubsArr.pop(0)
     userAccount["Clubs-Owned"] = userClubsArr
     userAccount.partial_save()
+
 def remove_club(email, name, clubId):
     userAccount = userTable.get_item(name=name, email=email)
     userClubsArr = list(userAccount["Clubs-Joined"])
@@ -290,7 +354,9 @@ def find_last_id():
     listItems = list(userItems)
     for item in listItems:
         try:
-            lastUserID = item["ID"]
+            thisID = item["ID"]
+            if (thisID > lastUserID):
+                lastUserID = thisID
         except:
             print("minor error")
 def find_next_id():
@@ -298,6 +364,7 @@ def find_next_id():
     nextId = lastUserID + 1
     lastUserID = nextId
     return nextId
+
 def find_user_name(email):
     name = ""
     userItems = userTable.scan()
@@ -343,9 +410,11 @@ def rename_user(oldName, newName, email):
     userTable.delete_item(name=oldName, email=email)
 def new_user(email, name):
     add_user(email, name, [""], [""], 0, [""])
-def check_user(email, justVerify=False):
+def check_user(email, userName="", justVerify=False):
     if ((find_user_name(email) == "") and (not justVerify)):
         ownerName = string.capwords(email.split("@")[0].replace(".", " "))
+        if (userName != ""):
+          ownerName = userName
         new_user(email, ownerName)
         return True
     elif (find_user_name(email) == ""):
@@ -364,14 +433,15 @@ def edit_club_info(cName, clubId, description, leaders, location, meeting, socia
     clubAccount["Type"] = type
     clubAccount["Website"] = website
     clubAccount.partial_save()
+
     if (addOwners != [""]):
         for ownerItems in addOwners:
-            check_user(ownerItems[0])
-            add_club_owner(ownerItems[0], find_user_name(ownerItems[0]), clubId)
+            if (check_user(ownerItems[0], True)):
+                add_club_owner(ownerItems[0], find_user_name(ownerItems[0]), 2)
     if (removeOwners != [""]):
         for ownerItems in removeOwners:
             if (check_user(ownerItems[0], True)):
-                remove_club_owner(ownerItems[0], find_user_name(ownerItems[0]), clubId)
+                remove_club_owner(ownerItems[0], find_user_name(ownerItems[0]), 2)
 def edit_club_member(membersAdd, membersRemove, clubId):
     if (len(membersAdd) > 0):
         if (membersAdd[0][0] != ""):
@@ -510,3 +580,59 @@ def edit_club_service(updateServices):
                 add_service(service["Change-Name"], service["ID"], service["Club"], service["Description"], service["End-Date"], service["End-Time"], service["Hours"], service["Start-Date"], service["Start-Time"], service["Sign-Ups"], service["Link"], service["Type"], service["User-ID"], service["Sign-Up-People"])
         except:
             print("had error uploading to database")
+def check_notif(notifInfo):
+    try:
+        notifItem = commTable.get_item(clubid=int(notifInfo["Club-ID"]), id=int(notifInfo["ID"]))
+        return True
+    except:
+        return False
+def update_notif(id, club, announcement, createdAt, message, toMembers, delete):
+    if (delete):
+        commTable.delete_item(clubid=int(club), id=int(id))
+    else: 
+        notifItem = commTable.get_item(clubid=int(club), id=int(id))
+        notifItem["Announcement"] = announcement
+        notifItem["Message"] = message
+        notifItem["To-Members"] = list(toMembers)
+        if (createdAt != "n/a"):
+            notifItem["Created-At"] = createdAt
+        notifItem.partial_save()
+def add_notif(id, club, announcement, createdAt, creator, message, toMembers):
+    commTable.put_item(data={ 
+        "clubid" : int(club),
+        "id" : int(id),
+        "Announcement" : announcement,
+        "Created-At" : createdAt,
+        "Creator" : creator,
+        "Message" : message,
+        "To-Members" : list(toMembers)
+    })
+def edit_club_communication(updateComms):
+    for notif in updateComms:
+        try:
+            if (check_notif(notif)):
+                update_notif(notif["ID"], notif["Club-ID"], notif["Announcement"], notif["Created-At"], notif["Message"], notif["To-Members"], notif["Delete"])
+            else:
+                add_notif(notif["ID"], notif["Club-ID"], notif["Announcement"], notif["Created-At"], notif["Creator"], notif["Message"], notif["To-Members"])
+        except:
+            print("had error uploading to database")
+def add_log(logId, userEmail, logType, logTime, logDetails):
+    logTable.put_item(data={
+        "id" : int(logId),
+        "userid" : userEmail,
+        "Time" : logTime,
+        "Type" : logType,
+        "Details" : logDetails
+    })
+    print("logged event")
+def last_log_id():
+    logItems = logTable.scan()
+    listItems = list(logItems)
+    lastId = 0
+    for item in listItems:
+        thisId = int(item["id"])
+        if (thisId > lastId):
+            lastId = thisId
+    return lastId
+
+

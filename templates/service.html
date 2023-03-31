@@ -352,8 +352,9 @@
 <br>
 <div class="container mt-2">
   <div class="topContainer">
+    <div class="topTxt">
     <div style="height:6px;"></div>
-    <h1>Service Opportunities</h1>
+    <h1 class="topTxt">Service Opportunities</h1>
     <hr style="height:2px;">
     <div style="height:18px;"></div>
     <p>There are currently <span class="serviceCount"></span> STEAM-related service opportunities offered at the STEAM
@@ -384,6 +385,7 @@
         <div class="bubble"></div>
         <div class="colorName">Other</div>
       </div>
+    </div>
     </div>
     <br>
     <div class="d-flex searchC">
@@ -470,18 +472,31 @@
   function changeJoinTxt(serviceId) {
     $(`#serviceId${serviceId}`).text("Signed Up");
     $(`#serviceId${serviceId}`).addClass("disabled");
+    if ($(`#serviceRId${serviceId}`).hasClass("d-none")) {
+      $(`#serviceRId${serviceId}`).removeClass("d-none");
+    }
   }
-  function joinService(serviceId) {
+  function changeJoinTxtBack(serviceId) {
+    $(`#serviceId${serviceId}`).text("Sign Up");
+    if ($(`#serviceId${serviceId}`).hasClass("disabled")) {
+      $(`#serviceId${serviceId}`).removeClass("disabled");
+    }
+    $(`#serviceRId${serviceId}`).addClass("d-none");
+  }
+  function joinService(serviceId, joinStatus=true) {
     try {
       var userEmailTxt = $(".userEmail").text();
-      var dataToSend = { "email": userEmailTxt, "serviceID": serviceId };
+      var dataToSend = { "email": userEmailTxt, "serviceID": serviceId, "join": joinStatus };
       $.ajax({
         type: "POST",
         url: "/service",
         data: JSON.stringify(dataToSend),
         contentType: "application/json",
         dataType: 'json'
-      }).always(function () { changeJoinTxt(serviceId) });
+      }).always(function () { 
+        if (joinStatus) { changeJoinTxt(serviceId); } 
+        else { changeJoinTxtBack(serviceId); }
+      });
     }
     catch (error) { }
   }
@@ -510,17 +525,35 @@
     return false;
 
   }
-  function clickServiceBtn() {
-    if (!this.classList.contains("disabled")) {
-      joinService(this.id.replace("serviceId", ""));
+  function clickServiceBtn(joinElementId, removeElementId) {
+    var joinElement = document.getElementById(joinElementId);
+    if (!joinElement.classList.contains("disabled")) {
+      var removeElement = document.getElementById(removeElementId);
+      if (removeElement.classList.contains("disabled")) {
+        removeElement.classList.remove("disabled");
+      }
+      joinService(joinElement.id.replace("serviceId", ""));
     }
+  }
+  function clickRemoveServiceBtn(joinElementId, removeElementId) {
+    try {
+      var removeElement = document.getElementById(removeElementId);
+      if (!removeElement.classList.contains("d-none")) {
+      var joinElement = document.getElementById(joinElementId);
+      if (joinElement.classList.contains("disabled")) {
+        joinElement.classList.remove("disabled");
+      }
+      joinService(removeElement.id.replace("serviceRId", ""), false);
+      removeElement.classList.add("d-none");
+    }
+    } catch (error) {  }
   }
   function updateServiceInListing(index) {
     //this creates a new list item element
     var listItem = document.createElement("div");
     listItem.id = `item${index + 1}`;
     listItem.classList.add("linkItem");
-    if (checked) { listItem.classList.add("hcLinkItem"); }
+    if (colorScheme == 1) { listItem.classList.add("hcLinkItem"); }
     //listItem.link = dataArr[index]["Link"];
     subServiceDisplay.appendChild(listItem);
     //Creating the title div
@@ -565,7 +598,7 @@
     listItemType.style.borderRadius = "20px";
     listItemType.style.height = "20px";
     listItemType.style.width = "20px";
-    if (checked) {
+    if (colorScheme == 1) {
       listItemType.style.display = "none";
     }
     listItemTitle.appendChild(listItemType);
@@ -661,24 +694,45 @@
     listItem.appendChild(listItemDescription);
     } catch(error) {}
     //Creating the sign up button div
-    if (spotsAvailable(dataArr[index]["ID"]) && $(".userEmail").text() != "") {
+    console.log("user email: "+$(".userEmail").text());
+    if (spotsAvailable(dataArr[index]["ID"]) && ($(".userEmail").text() != "" && $(".userEmail").text() != "Other-User")) {
       var listItemSignUp = document.createElement("div");
       var listItemSignUpBtn = document.createElement("button");
       listItemSignUpBtn.type = "button";
-      listItemSignUpBtn.onclick = clickServiceBtn;
       listItemSignUpBtn.classList.add("btn", "btn-primary", "serviceSignUpBtn");
-      if (checked) {
+      listItemSignUpBtn.style.marginRight = "4px";
+      if (colorScheme == 1) {
         listItemSignUpBtn.style.backgroundColor = "#242424";
       }
       listItemSignUpBtn.id = "serviceId" + dataArr[index]["ID"];
+
+      var listItemRSignUpBtn = document.createElement("button");
+      listItemRSignUpBtn.type = "button";
+      listItemRSignUpBtn.classList.add("btn", "btn-primary", "serviceSignUpBtn");
+      if (colorScheme == 1) {
+        listItemRSignUpBtn.style.backgroundColor = "#242424";
+      }
+      listItemRSignUpBtn.id = "serviceRId" + dataArr[index]["ID"];
+
       var listItemSignUpBtnTxt = document.createTextNode("Sign Up");
+      listItemRSignUpBtn.classList.add("d-none");
       if (checkIfSignedUp(dataArr[index]["ID"])) {
         listItemSignUpBtn.classList.add("disabled");
+        if (listItemRSignUpBtn.classList.contains("d-none")) {
+          listItemRSignUpBtn.classList.remove("d-none");
+        }
         listItemSignUpBtnTxt = document.createTextNode("Signed Up");
       }
+      var listItemRSignUpBtnTxt = document.createTextNode("Remove");
       listItemSignUpBtn.appendChild(listItemSignUpBtnTxt);
       listItemSignUp.appendChild(listItemSignUpBtn);
+
+      listItemRSignUpBtn.appendChild(listItemRSignUpBtnTxt);
+      listItemSignUp.appendChild(listItemRSignUpBtn);
       listItem.appendChild(listItemSignUp);
+
+      listItemSignUpBtn.onclick = function() { clickServiceBtn(listItemSignUpBtn.id, listItemRSignUpBtn.id) };
+      listItemRSignUpBtn.onclick = function() { clickRemoveServiceBtn(listItemSignUpBtn.id, listItemRSignUpBtn.id) };
     }
     //Creating the more info link div
     if (dataArr[index]["Link"] != " " && dataArr[index]["Link"] != "") {
@@ -686,7 +740,7 @@
       var listItemLinkA = document.createElement("a");
       listItemLinkA.target = "_blank";
       listItemLinkA.classList.add("linkItemA");
-      if (checked) { listItemLinkA.classList.add("hcA"); }
+      if (colorScheme == 1) { listItemLinkA.classList.add("hcA"); }
       listItemLinkA.href = dataArr[index]["Link"];
       listItemLinkA.alt = "More Info";
       var listItemLinkATxt = document.createTextNode("More Info");
@@ -1016,12 +1070,15 @@
   $(document).ready(function () {
     $(".userEmail").css("display", "none");
     const fetch1 = fetch('/clubs/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
-    const fetch2 = fetch('/user/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
+    //const fetch2 = fetch('/user/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
     const fetch3 = fetch('/service/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
-    Promise.all([fetch1, fetch2, fetch3]).then(function (ClubData) {
+    Promise.all([fetch1, fetch3]).then(function (ClubData) {
       clubsArr = ClubData[0]["Items"];
-      userArr = ClubData[1]["Items"];
-      dataArr = sortArray(ClubData[2]["Items"]);
+      try {
+        userArr = JSON.parse({{ userData | tojson | safe }})["Items"];
+      } catch (error) { }
+      //userArr = ClubData[1]["Items"];
+      dataArr = sortArray(ClubData[1]["Items"]);
       numOfServices = dataArr.length;
       updateServiceListing();
       repositionFooter();

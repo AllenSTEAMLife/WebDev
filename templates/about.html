@@ -62,6 +62,15 @@
     color: #004a99;
     text-decoration: underline;
   }
+  .pageLink2 {
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+  }
+  .pageLink2:hover {
+    color: #f2f0f0;
+    text-decoration: underline;
+  }
   .navbar {
     position: relative;
     display: flex;
@@ -215,7 +224,7 @@
 
 {% include "components/nav.html" %}
 <section id="page2"></section>
-<div class="jumbotron" style="background-color:white">
+<div class="jumbotron changeContainer">
   <div class="container-fluid my-container">
     <div class="container mt-2">
       <div class="row justify-content-between">
@@ -252,7 +261,7 @@
     </div>
   </div>
 </div>
-<div class="jumbotron" style="background-color:white">
+<div class="jumbotron changeContainer">
   <div class="container-fluid my-container">
     <div class="container mt-2">
       <div class="row justify-content-between">
@@ -261,6 +270,17 @@
         </div>
       </div>
       <div class="biosC">
+        <div class="bioC">
+          <div class="bioTitle">
+            <h3 style="font-size:25px;">Matthew Caldarola</h3>
+            <hr class="underlineB">
+            <h5 style="font-size:17px;">Founder, Web Dev</h5>
+          </div>
+          <div class="picChange">
+            <div class="cover"><img src="{{ url_for('static', filename='BioPics/Matthew_Bio.jpg') }}" class="coverImg" loading="lazy" alt="bio image"></img></div>
+            <div class="bioTxt">Graduating class of 2023, Matthew Caldarola founded the STEAM Center App project, fostered collaboration throughout meetings, and helped program for app and web development. Although really passionate about programming as he knows 16 of these languages, he also plays the trumpet, loves robotics, and enjoys badminton.</div>
+          </div>
+        </div>
         <div class="bioC">
           <div class="bioTitle">
             <h3>Parth Koul</h3>
@@ -407,6 +427,17 @@
         </div>
       </div>
       <div class="biosC">
+        <div class="bioC">
+          <div class="bioTitle phase2Dark">
+            <h3 style="font-size:25px;">Matthew Caldarola</h3>
+            <hr class="underlineB">
+            <h5 style="font-size:17px;">Founder, App and Web Dev</h5>
+          </div>
+          <div class="picChange">
+            <div class="cover"><img src="{{ url_for('static', filename='BioPics/Matthew_Bio.jpg') }}" class="coverImg" loading="lazy" alt="bio image"></img></div>
+            <div class="bioTxt phase2">Graduating class of 2023, Matthew Caldarola founded the STEAM Center App project, fostered collaboration throughout meetings, and helped program for app and web development. Although really passionate about programming as he knows 16 of these languages, he also plays the trumpet, loves robotics, and enjoys badminton.</div>
+          </div>
+        </div>
         <div class="bioC">
           <div class="bioTitle phase2Dark">
             <h3>Avi Aggarwal</h3>
@@ -607,17 +638,6 @@
         </div>
         <div class="bioC">
           <div class="bioTitle phase2Dark">
-            <h3>Arnov Barua</h3>
-            <hr class="underlineB">
-            <h5>Web Development</h5>
-          </div>
-          <div class="picChange">
-            <div class="cover"><img src="{{ url_for('static', filename='exampleBio.png') }}" class="coverImg" loading="lazy" alt="bio image"></img></div>
-            <div class="bioTxt phase2">Partaking in the 2023 graduating class. Contributed to the functionality of the STEAM center website and respective app. Arnov likes hanging out with friends, binge-watching films plus TV shows, reading books, editing on Premiere Pro, playing video games, and philosophy in his free time.</div>
-          </div>
-        </div>
-        <div class="bioC">
-          <div class="bioTitle phase2Dark">
             <h3>Akshar Koul</h3>
             <hr class="underlineB">
             <h5>Web Development</h5>
@@ -631,7 +651,7 @@
     </div>
   </div>
 </div>
-<div class="jumbotron" style="background-color:white">
+<div class="jumbotron changeContainer">
   <div class="container-fluid my-container">
     <div class="container mt-2">
       <div class="row justify-content-between">
@@ -656,6 +676,11 @@
         <div class="subTimelineDisplay3 subTimelineD">
           <div class="linkItem" style="display:none"></div>
         </div>
+        <h2 class="title-text timelineT">Phase 3</h2>
+        <hr class="underlineT">
+        <div class="subTimelineDisplay4 subTimelineD">
+          <div class="linkItem" style="display:none"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -669,12 +694,16 @@
             personalize their school experience. Here you can receive tailored notifications, service hour 
             opportunities, news about ongoing projects, and more! Our students are always up to something 
             innovative and exciting, and through the app you can learn all about it. Keep track of your 
-            activities and never miss an event or update with the STEAM Life mobile app.</p>
+            activities and never miss an event or update with the STEAM Life mobile app, now available on Android and Apple devices.</p>
+	    <p class="body-text" style="width:100%;text-align:center;"><a href="https://apps.apple.com/us/app/steam-life/id1666082126" class="pageLink2" target="_blank" alt="Apple install link">Apple App Store
+              </a></p>
+            <p class="body-text" style="width:100%;text-align:center;"><a href="https://play.google.com/store/apps/details?id=org.life.allencsmobile" class="pageLink2" target="_blank" alt="Android install link">Google Play Store
+              </a></p>
         </div>
     </div>
   </div>
 </div>
-<div class="jumbotron" style="background-color:white">
+<div class="jumbotron changeContainer">
   <div class="container-fluid my-container">
     <div class="container mt-2">
       <div class="row justify-content-between">
@@ -714,6 +743,7 @@
   var subTimelineDisplay = document.querySelector(".subTimelineDisplay");
   var subTimelineDisplay2 = document.querySelector(".subTimelineDisplay2");
   var subTimelineDisplay3 = document.querySelector(".subTimelineDisplay3");
+  var subTimelineDisplay4 = document.querySelector(".subTimelineDisplay4");
   var dataArr;
   var scrollID = "";
   var eventListing = document.querySelector(".timelineDisplay");
@@ -724,7 +754,7 @@
     var listItem = document.createElement("div");
     listItem.id = `item${index + 1}`;
     listItem.classList.add("linkItem");
-    if (checked) { listItem.classList.add("hcLinkItem"); }
+    if (colorScheme != 0) { listItem.classList.add("hcLinkItem"); }
     display.appendChild(listItem);
     //creating the name div
     var listItemName = document.createElement("div");
@@ -787,7 +817,7 @@
       else { 
         listItem.style.visibility = "hidden";
         spacer.classList.add("rightItem");
-        if (checked) {
+        if (colorScheme != 0) {
           spacer.classList.add("hcLinkItem");
         } 
       }
@@ -840,7 +870,9 @@
     const startPoint2 = dateToNum("3/15/21");
     var startCount2 = 0;
     const startPoint3 = dateToNum("9/9/21");
-    //don't need a counter to calculate the 3rd endpoint since this will always be dataArr.length
+    var startCount3 = 0;
+    const startPoint4 = dateToNum("9/26/22");
+    //don't need a counter to calculate the 4th endpoint since this will always be dataArr.length
     for (var index=0; index < dataArr.length; index++) {
       var tempVal = dateToNum(`${dataArr[index].date}`);
       //console.log(startPoint);
@@ -850,9 +882,13 @@
       else if (tempVal >= startPoint2 && tempVal < startPoint3) {
         startCount2++;
       }
+      else if (tempVal >= startPoint3 && tempVal < startPoint4) {
+        startCount3++;
+      }
     }
     endPoints[0] = startCount;
     endPoints[1] = startCount + startCount2;
+    endPoints[2] = startCount + startCount2 + startCount3;
   }
   function updateTimeline() {
     findEndPoints();
@@ -861,7 +897,9 @@
     //this adds the information for the phase 1 sub-timeline
     updateSubTimeline(subTimelineDisplay2, endPoints[0], endPoints[1]);
     //this adds the information for the phase 2 sub-timeline
-    updateSubTimeline(subTimelineDisplay3, endPoints[1], dataArr.length);
+    updateSubTimeline(subTimelineDisplay3, endPoints[1], endPoints[2]);
+    //this adds the information for the phase 3 sub-timeline
+    updateSubTimeline(subTimelineDisplay4, endPoints[2], dataArr.length);
   }
   function clearTimeline() {
       while (subTimelineDisplay.firstChild) {
@@ -872,6 +910,9 @@
       }
       while (subTimelineDisplay3.firstChild) {
         subTimelineDisplay3.removeChild(subTimelineDisplay3.firstChild);
+      }
+      while (subTimelineDisplay4.firstChild) {
+        subTimelineDisplay4.removeChild(subTimelineDisplay4.firstChild);
       }
     }
   function repositionFooter() {
