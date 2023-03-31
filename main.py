@@ -19,6 +19,8 @@ import pytz
 
 app = Flask(__name__, static_url_path="/static", static_folder="static")
 
+
+
 #app.config.from_envvar('CONFIG')
 #timeshift = app.config.get("TIMEZONE_SHIFT")
 
@@ -230,7 +232,6 @@ def route_callback():
       session["google_id"] = userinfo_response.json()["sub"]
       session["email"] = userinfo_response.json()["email"]
       session["name"] = userinfo_response.json()["name"]
-
     awsController.check_user(session["email"], session["name"])
     oldName = awsController.find_user_name(session["email"])
     logDetails = ""
@@ -244,7 +245,7 @@ def route_callback():
       logDetails += session["email"]
     except:
       print("error occurred when logging")
-      awsController.add_log(next_log_id(), get_user_email(), "Sign-In", logTime, logDetails)
+    awsController.add_log(next_log_id(), get_user_email(), "Sign-In", logTime, logDetails)
   except:
     print("a callback error occurred")
   return redirect("/dashboard")
@@ -287,7 +288,7 @@ def route_user_data():
   return jsonify(Items=[])
 
 @app.route("/dashboard")
-#@dashboard_login_is_required
+@dashboard_login_is_required
 def route_dashboard():
   return render_template("dashboard.html", email=get_user_email(), name=get_user_name(), userData=get_users_data())
 

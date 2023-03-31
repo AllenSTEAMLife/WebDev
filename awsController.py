@@ -299,6 +299,7 @@ def add_club(email, name, clubId):
     userClubsArr.append(clubId)
     if (userClubsArr[0] == ""):
         userClubsArr.pop(0)
+    print("user clubs: ", userClubsArr)
     userAccount["Clubs-Joined"] = userClubsArr
     userAccount.partial_save()
 def add_club_owner(email, name, clubId):
@@ -338,10 +339,10 @@ def add_user_service(email, name, serviceId):
         userServicesArr.pop(0)
     userAccount["Service"] = userServicesArr
     userAccount.partial_save()
-def remove_user_service(email, name, clubId):
+def remove_user_service(email, name, serviceId):
     userAccount = userTable.get_item(name=name, email=email)
     userServiceArr = list(userAccount["Service"])
-    userServiceArr.remove(clubId)
+    userServiceArr.remove(serviceId)
     if (len(userServiceArr) == 0):
         userServiceArr = [""]
     elif (userServiceArr[0] == ""):
@@ -420,7 +421,7 @@ def check_user(email, userName="", justVerify=False):
     elif (find_user_name(email) == ""):
         return False
     else:
-        return True        
+        return True
 def edit_club_info(cName, clubId, description, leaders, location, meeting, social, sponsors, subtype, type, website, addOwners, removeOwners):
     clubAccount = clubsTable.get_item(name=cName, id=int(clubId))
     clubAccount["Description"] = description
@@ -437,11 +438,11 @@ def edit_club_info(cName, clubId, description, leaders, location, meeting, socia
     if (addOwners != [""]):
         for ownerItems in addOwners:
             if (check_user(ownerItems[0], True)):
-                add_club_owner(ownerItems[0], find_user_name(ownerItems[0]), 2)
+                add_club_owner(ownerItems[0], find_user_name(ownerItems[0]), clubId)
     if (removeOwners != [""]):
         for ownerItems in removeOwners:
             if (check_user(ownerItems[0], True)):
-                remove_club_owner(ownerItems[0], find_user_name(ownerItems[0]), 2)
+                remove_club_owner(ownerItems[0], find_user_name(ownerItems[0]), clubId)
 def edit_club_member(membersAdd, membersRemove, clubId):
     if (len(membersAdd) > 0):
         if (membersAdd[0][0] != ""):
@@ -634,5 +635,4 @@ def last_log_id():
         if (thisId > lastId):
             lastId = thisId
     return lastId
-
 
