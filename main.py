@@ -17,7 +17,7 @@ import pathlib
 import string
 import pytz
 
-#Note - this is the main.py file that I am using as of 9/26/22
+app = Flask(__name__, static_url_path="/static", static_folder="static")
 
 
 
@@ -264,7 +264,7 @@ def route_login():
     authorization_endpoint = google_provider_cfg["authorization_endpoint"]
     request_uri = client.prepare_request_uri(
         authorization_endpoint,
-        redirect_uri="http://127.0.0.1:5000/callback",
+        redirect_uri="https://life.allencs.org/callback",
         scope=["openid", "email", "profile"],
     )
     return redirect(request_uri)
@@ -285,7 +285,6 @@ def route_user_data():
         logDetails += session["email"]
       except:
         print("error occurred when logging")
-      #awsController.add_log(28, "lkjsfd", "Data-Warning", "asdf", "asf")
       awsController.add_log(next_log_id(), get_user_email(), "Data-Warning", logTime, logDetails)
       return jsonify(Items=awsController.get_user_items())
   except:

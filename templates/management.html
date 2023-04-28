@@ -1296,10 +1296,16 @@
     var endTiming = eventCard.querySelector(".eventEDate").value.split(" ");
     var endDate = endTiming[0];
     var endDateArr = endDate.split("/");
-    var cleanedMonth = parseInt(endDateArr[0]).toString();
-    var cleanedDay = parseInt(endDateArr[1]).toString();
+    
+    var cleanedMonth = parseInt(endDateArr[0]);
+    var cleanedDay = parseInt(endDateArr[1]);
     var cleanedYear = parseInt(endDateArr[2]).toString();
-    endDate = cleanedMonth + "/" + cleanedDay + "/" + cleanedYear;
+    var monthZero = "";
+    var dayZero = "";
+    if (cleanedMonth < 10) { monthZero = "0"; }
+    if (cleanedDay < 10) { dayZero="0"; }
+
+    endDate = monthZero + cleanedMonth.toString() + "/" + dayZero + cleanedDay.toString() + "/" + cleanedYear;
     if (!onlyNumber(cleanedMonth) || !onlyNumber(cleanedDay) || !onlyNumber(cleanedYear)) {
       alert("Event end date typed incorrectly, use MM/DD/YYYY");
       endDate = "";
@@ -1322,10 +1328,16 @@
     var startTiming = eventCard.querySelector(".eventSDate").value.split(" ");
     var startDate = startTiming[0];
     var startDateArr = startDate.split("/");
-    cleanedMonth = parseInt(startDateArr[0]).toString();
-    cleanedDay = parseInt(startDateArr[1]).toString();
+    cleanedMonth = parseInt(startDateArr[0]);
+    cleanedDay = parseInt(startDateArr[1]);
     cleanedYear = parseInt(startDateArr[2]).toString();
-    startDate = cleanedMonth + "/" + cleanedDay + "/" + cleanedYear;
+
+    monthZero = ""
+    dayZero = ""
+    if (cleanedMonth < 10) { monthZero = "0"; }
+    if (cleanedDay < 10) { dayZero = "0"; }
+
+    startDate = monthZero + cleanedMonth.toString() + "/" + dayZero + cleanedDay.toString() + "/" + cleanedYear;
     if (!onlyNumber(cleanedMonth) || !onlyNumber(cleanedDay) || !onlyNumber(cleanedYear)) {
       alert("Event start date typed incorrectly, use MM/DD/YYYY");
       startDate = "";

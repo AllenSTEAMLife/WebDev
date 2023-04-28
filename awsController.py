@@ -137,6 +137,7 @@ def get_calendar_items():
             print("none of this type for object")
         itemsList.append(itemDictionary)
     return itemsList
+
 def get_service_items():
     serviceItems = serviceTable.scan()
     listItems = list(serviceItems)
@@ -338,6 +339,7 @@ def get_user_items():
             print("none of this type for object")
         itemsList.append(itemDictionary)
     return itemsList
+
 def add_club(email, name, clubId):
     userAccount = userTable.get_item(name=name, email=email)
     userClubsArr = list(userAccount["Clubs-Joined"])
@@ -355,6 +357,7 @@ def add_club_owner(email, name, clubId):
         userClubsArr.pop(0)
     userAccount["Clubs-Owned"] = userClubsArr
     userAccount.partial_save()
+
 def remove_club(email, name, clubId):
     userAccount = userTable.get_item(name=name, email=email)
     userClubsArr = list(userAccount["Clubs-Joined"])
@@ -409,6 +412,7 @@ def find_next_id():
     nextId = lastUserID + 1
     lastUserID = nextId
     return nextId
+
 def find_user_name(email):
     name = ""
     userItems = userTable.scan()
@@ -458,13 +462,13 @@ def check_user(email, userName="", justVerify=False):
     if ((find_user_name(email) == "") and (not justVerify)):
         ownerName = string.capwords(email.split("@")[0].replace(".", " "))
         if (userName != ""):
-            ownerName = userName
+          ownerName = userName
         new_user(email, ownerName)
         return True
     elif (find_user_name(email) == ""):
         return False
     else:
-        return True        
+        return True
 def edit_club_info(cName, clubId, description, leaders, location, meeting, social, sponsors, subtype, type, website, addOwners, removeOwners):
     clubAccount = clubsTable.get_item(name=cName, id=int(clubId))
     clubAccount["Description"] = description
@@ -477,6 +481,7 @@ def edit_club_info(cName, clubId, description, leaders, location, meeting, socia
     clubAccount["Type"] = type
     clubAccount["Website"] = website
     clubAccount.partial_save()
+
     if (addOwners != [""]):
         for ownerItems in addOwners:
             if (check_user(ownerItems[0], True)):
@@ -715,3 +720,4 @@ def last_log_id():
         if (thisId > lastId):
             lastId = thisId
     return lastId
+
