@@ -20,6 +20,7 @@ userTable = Table('STEAM-APP-Users', connection=conn)
 commTable = Table('STEAM-APP-Communication', connection=conn)
 dayTable = Table('STEAM-APP-Day', connection=conn)
 logTable = Table('STEAM-APP-Log', connection=conn)
+attnTable = Table('STEAM-APP-Meetings', connection=conn)
 
 def get_club_items():
     clubItems = clubsTable.scan()
@@ -232,6 +233,52 @@ def get_comm_items():
             print("none of this type for object")
         try:
             itemDictionary.update({"To-Members" : list(item["To-Members"])})
+        except:
+            print("none of this type for object")
+        itemsList.append(itemDictionary)
+    return itemsList
+def get_attn_items():
+    attnItems = attnTable.scan()
+    listItems = list(attnItems)
+    itemsList = []
+    itemDictionary = {}
+    for item in listItems:
+        itemDictionary = {}
+        #create the item dictionary
+        try:
+            itemDictionary.update({"Club-ID" : (item["clubid"])})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"ID" : (item["id"])})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"Name" : item["name"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"Code" : item["checkInCode"]})
+        except:
+            print("none of this type for object")
+        try: 
+            itemDictionary.update({"Start-Date" : item["startDate"]})
+        except:
+            print("none of this type for object")
+        try: 
+            itemDictionary.update({"Start-Time" : item["startTime"]})
+        except:
+            print("none of this type for object")
+        try: 
+            itemDictionary.update({"End-Date" : item["endDate"]})
+        except:
+            print("none of this type for object")
+        try: 
+            itemDictionary.update({"End-Time" : item["endTime"]})
+        except:
+            print("none of this type for object")
+        try:
+            itemDictionary.update({"Members-Attn" : list(item["users"])})
         except:
             print("none of this type for object")
         itemsList.append(itemDictionary)
@@ -603,6 +650,35 @@ def add_notif(id, club, announcement, createdAt, creator, message, toMembers):
         "Message" : message,
         "To-Members" : list(toMembers)
     })
+def check_attn(attnInfo):
+    try:
+        attnItem = attnTable.get_item(clubid=int(attnInfo["Club-ID"]), id=int(attnInfo["ID"]))
+        return True
+    except:
+        return False
+def update_attn(name, id, club, startDate, startTime, endDate, endTime, delete):
+    if (delete):
+        attnTable.delete_item(clubid=int(club), id=int(id))
+    else: 
+        attnItem = attnTable.get_item(clubid=int(club), id=int(id))
+        attnItem["name"] = name
+        attnItem["startDate"] = startDate
+        attnItem["endDate"] = endDate
+        attnItem["startTime"] = startTime
+        attnItem["endTime"] = endTime
+        attnItem.partial_save()
+def add_attn(name, id, checkInCode, club, endDate, endTime, startDate, startTime):
+    attnTable.put_item(data={ 
+        "clubid" : int(club),
+        "id" : int(id),
+        "checkInCode" : checkInCode,
+        "endDate" : endDate,
+        "endTime" : endTime,
+        "name" : name,
+        "startDate" : startDate,
+        "startTime" : startTime,
+        "users" : list([])
+    })
 def edit_club_communication(updateComms):
     for notif in updateComms:
         try:
@@ -610,6 +686,15 @@ def edit_club_communication(updateComms):
                 update_notif(notif["ID"], notif["Club-ID"], notif["Announcement"], notif["Created-At"], notif["Message"], notif["To-Members"], notif["Delete"])
             else:
                 add_notif(notif["ID"], notif["Club-ID"], notif["Announcement"], notif["Created-At"], notif["Creator"], notif["Message"], notif["To-Members"])
+        except:
+            print("had error uploading to database")
+def edit_club_attendance(updateAttns):
+    for attn in updateAttns:
+        try:
+            if (check_attn(attn)):
+                update_attn(attn["Name"], attn["ID"], attn["Club-ID"], attn["Start-Date"], attn["Start-Time"], attn["End-Date"], attn["End-Time"], attn["Delete"])
+            else:
+                add_attn(attn["Name"], attn["ID"], attn["Code"], attn["Club-ID"], attn["End-Date"], attn["End-Time"], attn["Start-Date"], attn["Start-Time"])
         except:
             print("had error uploading to database")
 def add_log(logId, userEmail, logType, logTime, logDetails):

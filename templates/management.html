@@ -29,19 +29,26 @@
     display: none;
   }
 
+  .attnsC {
+    display: none;
+  }
+
   .visitPage,
   .addEventBtn,
   .editEventBtn,
   .addServiceBtn,
   .editServiceBtn,
   .addCommBtn,
-  .editCommBtn {
+  .addAttnBtn,
+  .editCommBtn,
+  .editAttnBtn {
     background-color: #3585fd;
   }
 
   .addEventBtn,
   .addServiceBtn,
-  .addCommBtn {
+  .addCommBtn,
+  .addAttnBtn {
     font-weight: bold;
   }
 
@@ -94,6 +101,9 @@
     </li>
     <li class="nav-item">
       <a class="nav-link clubMNav" id="clubNav4" href="#">Communication</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link clubMNav" id="clubNav5" href="#">Attendance</a>
     </li>
   </ul>
   <div class="container generalInfoC">
@@ -354,6 +364,18 @@
     <div style="margin-top:10px;"></div>
     <div class="card-group commCards"></div>
   </div>
+  <div class="container attnsC">
+    <div style="margin-top:20px;"></div>
+    <h4>Attendance&nbsp;&nbsp;&nbsp;<span><button type="button" class="btn btn-primary addAttnBtn"><i
+            class="fa-solid fa-plus"></i></button></span>&nbsp;&nbsp;<span><button type="button"
+          class="btn btn-primary editAttnBtn"><i
+            class="fa-solid fa-pen-to-square"></i></button></span>&nbsp;&nbsp;<span><button type="button"
+          class="btn btn-success approveAttnBtn disabled"><i
+            class="fa-solid fa-check"></i></button></span>&nbsp;&nbsp;<span><button type="button"
+          class="btn btn-danger cancelAttnBtn disabled"><i class="fa-solid fa-xmark"></i></button></span></h4>
+    <div style="margin-top:10px;"></div>
+    <div class="card-group attnCards"></div>
+  </div>
   <div class="userEmail">{{ email }}</div>
 </div>
 {% include "components/footer.html" %}
@@ -364,6 +386,7 @@
   var eventsArr;
   var serviceArr;
   var commsArr;
+  var attnsArr;
   var managePage = 1;
   var clubData;
   var addNewEvent = false;
@@ -378,6 +401,10 @@
   var nextCommId = 0;
   var firstCommId = true;
   var addNewComm = false;
+  var addNewAttn = false;
+  var oldAttnData = [];
+  var nextAttnId = 0;
+  var firstAttnId = true;
   //get viewport dimensions
   const vw = Math.max(document.documentElement.clientWidth || 0, window.innerWidth || 0)
   const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
@@ -459,6 +486,7 @@
     $(".eventsC").css("display", "none");
     $(".serviceC").css("display", "none");
     $(".commsC").css("display", "none");
+    $(".attnsC").css("display", "none");
   }
   $(".clubMNav").on("click", function () {
     clubRemoveActive(".clubMNav");
@@ -477,6 +505,9 @@
         break;
       case 4:
         $(".commsC").css("display", "block");
+        break;
+      case 5:
+        $(".attnsC").css("display", "block");
         break;
       default:
         $(".generalInfoC").css("display", "block");
@@ -706,12 +737,14 @@
     const fetch3 = fetch('/events/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
     const fetch4 = fetch('/comm/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
     const fetch5 = fetch('/service/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
-    Promise.all([fetch1, fetch2, fetch3, fetch4, fetch5]).then(function (JsonData) {
+    const fetch6 = fetch('/attendance/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
+    Promise.all([fetch1, fetch2, fetch3, fetch4, fetch5, fetch6]).then(function (JsonData) {
       userArr = JsonData[0]["Items"];
       clubsArr = JsonData[1]["Items"];
       eventsArr = JsonData[2]["Items"];
       commsArr = JsonData[3]["Items"];
       serviceArr = JsonData[4]["Items"];
+      attnsArr = JsonData[5]["Items"];
       loadClubData(clubData["ID"]);
     });
   }
@@ -914,7 +947,7 @@
     eventEDateInput.id = `datetimepicker${eventId}-2EventInput`;
     eventEDateInput.classList.add("form-control", "eventEDate");
     eventEDateInput.type = "text";
-    eventEDateInput.placeholder = "Type start date/time here in the format MM/DD/YYYY HH:MM AM/PM.";
+    eventEDateInput.placeholder = "Type end date/time here in the format MM/DD/YYYY HH:MM AM/PM.";
     eventEDateInput.readOnly = disable;
     var newEndTime = "";
     if (checkIfEditable(endTime)) {
@@ -1059,6 +1092,132 @@
     notifSendToPeopleC.appendChild(notifSendToPeopleCInput);
     return cardC;
   }
+  function createAttnCard(name, attnId, checkInCode, clubId, endDate, endTime, startDate, startTime, disable = true) {
+    var cardC = document.createElement("div");
+    cardC.classList.add("card");
+    cardC.id = "attn" + attnId;
+    var cardBody = document.createElement("div");
+    cardBody.classList.add("card-body");
+    cardC.appendChild(cardBody);
+    //create the title input field
+    var attnTitleC = document.createElement("div");
+    attnTitleC.classList.add("input-group", "input-group-lg");
+    cardBody.appendChild(attnTitleC);
+    var attnTitleInput = document.createElement("input");
+    attnTitleInput.classList.add("form-control", "attnTitle");
+    attnTitleInput.type = "text";
+    attnTitleInput.placeholder = "Type meeting name here.";
+    attnTitleInput.readOnly = disable;
+    attnTitleInput.value = name;
+    attnTitleC.appendChild(attnTitleInput);
+    //create the start date/time field
+    var attnSDateC = document.createElement("div");
+    attnSDateC.classList.add("input-group");
+    attnSDateC.id = `datetimepicker${attnId}-1Attn`;
+    cardBody.appendChild(attnSDateC);
+    var attnSDatePrepend = document.createElement("div");
+    attnSDatePrepend.classList.add("input-group-prepend");
+    attnSDateC.appendChild(attnSDatePrepend);
+    var attnSDatePrependSpan = document.createElement("span");
+    attnSDatePrependSpan.classList.add("input-group-text");
+    attnSDatePrepend.appendChild(attnSDatePrependSpan);
+    var attnSDatePrependSpanTxt = document.createTextNode("Meeting Start");
+    attnSDatePrependSpan.appendChild(attnSDatePrependSpanTxt);
+    var attnSDateInput = document.createElement("input");
+    attnSDateInput.id = `datetimepicker${attnId}-1AttnInput`;
+    attnSDateInput.classList.add("form-control", "attnSDate");
+    attnSDateInput.type = "text";
+    attnSDateInput.placeholder = "Type start date/time here in the format MM/DD/YYYY HH:MM AM/PM.";
+    attnSDateInput.readOnly = disable;
+    var newStartTime = "";
+    if (checkIfEditable(startTime)) {
+      var startTimeArr = startTime.split(":");
+      var startTimeHours = parseInt(startTimeArr[0]);
+      var ampm = "AM";
+      var zeroString = "";
+
+      if (startTimeHours > 12) {
+        startTimeHours -= 12;
+        ampm = "PM";
+      } else if (startTimeHours < 10) {
+        zeroString = "0";
+      }
+      newStartTime = zeroString + startTimeHours.toString() + ":" + startTimeArr[1] + " " + ampm;
+    }
+    var startTimingStr = startDate + " " + newStartTime;
+    attnSDateInput.value = startTimingStr;
+    attnSDateC.appendChild(attnSDateInput);
+    var attnSDateInputSpan = document.createElement("span");
+    attnSDateInputSpan.classList.add("input-group-text");
+    attnSDateInputSpan.id = `datetimepicker${attnId}-1AttnSpan`;
+    attnSDateC.appendChild(attnSDateInputSpan);
+    var attnSDateInputGlyphSpan = document.createElement("span");
+    attnSDateInputGlyphSpan.classList.add("fa-solid", "fa-calendar");
+    attnSDateInputSpan.appendChild(attnSDateInputGlyphSpan);
+    //create the end date/time field
+    var attnEDateC = document.createElement("div");
+    attnEDateC.classList.add("input-group");
+    attnEDateC.id = `datetimepicker${attnId}-2Attn`;
+    cardBody.appendChild(attnEDateC);
+    var attnEDatePrepend = document.createElement("div");
+    attnEDatePrepend.classList.add("input-group-prepend");
+    attnEDateC.appendChild(attnEDatePrepend);
+    var attnEDatePrependSpan = document.createElement("span");
+    attnEDatePrependSpan.classList.add("input-group-text");
+    attnEDatePrepend.appendChild(attnEDatePrependSpan);
+    var attnEDatePrependSpanTxt = document.createTextNode("Meeting End");
+    attnEDatePrependSpan.appendChild(attnEDatePrependSpanTxt);
+    var attnEDateInput = document.createElement("input");
+    attnEDateInput.id = `datetimepicker${attnId}-2AttnInput`;
+    attnEDateInput.classList.add("form-control", "attnEDate");
+    attnEDateInput.type = "text";
+    attnEDateInput.placeholder = "Type end date/time here in the format MM/DD/YYYY HH:MM AM/PM.";
+    attnEDateInput.readOnly = disable;
+    var newEndTime = "";
+    if (checkIfEditable(endTime)) {
+      var endTimeArr = endTime.split(":");
+      var endTimeHours = parseInt(endTimeArr[0]);
+      var ampm = "AM";
+      var zeroString = "";
+
+      if (endTimeHours > 12) {
+        endTimeHours -= 12;
+        ampm = "PM";
+        zeroString = "0";
+      }
+      newEndTime = zeroString + endTimeHours.toString() + ":" + endTimeArr[1] + " " + ampm;
+    }
+    var endTimingStr = endDate + " " + newEndTime;
+    attnEDateInput.value = endTimingStr;
+    attnEDateC.appendChild(attnEDateInput);
+    var attnEDateInputSpan = document.createElement("span");
+    attnEDateInputSpan.classList.add("input-group-text");
+    attnEDateInputSpan.id = `datetimepicker${attnId}-2AttnSpan`;
+    attnEDateC.appendChild(attnEDateInputSpan);
+    var attnEDateInputGlyphSpan = document.createElement("span");
+    attnEDateInputGlyphSpan.classList.add("fa-solid", "fa-calendar");
+    attnEDateInputSpan.appendChild(attnEDateInputGlyphSpan);
+    //create the check in code input field
+    var attnCodeC = document.createElement("div");
+    attnCodeC.classList.add("input-group");
+    cardBody.appendChild(attnCodeC);
+    var attnCodePrepend = document.createElement("div");
+    attnCodePrepend.classList.add("input-group-prepend");
+    attnCodeC.appendChild(attnCodePrepend);
+    var attnCodePrependSpan = document.createElement("span");
+    attnCodePrependSpan.classList.add("input-group-text");
+    attnCodePrepend.appendChild(attnCodePrependSpan);
+    var attnCodePrependSpanTxt = document.createTextNode("Check-In Code");
+    attnCodePrependSpan.appendChild(attnCodePrependSpanTxt);
+    var attnCodeInput = document.createElement("input");
+    attnCodeInput.classList.add("form-control", "attnCode");
+    attnCodeInput.type = "text";
+    attnCodeInput.placeholder = "Type attendance code here.";
+    attnCodeInput.readOnly = disable;
+    attnCodeInput.value = checkInCode;
+    attnCodeC.appendChild(attnCodeInput);
+    return cardC;
+  }
   function getClubEvents(clubId, dataArr) {
     var events = [];
     for (var index = 0; index < dataArr.length; index++) {
@@ -1078,6 +1237,16 @@
       }
     }
     return notifications;
+  }
+  function getClubAttns(clubId, dataArr) {
+    var attendances = [];
+    for (var index = 0; index < dataArr.length; index++) {
+      var attnClub = dataArr[index]["Club-ID"];
+      if (attnClub == clubId) {
+        attendances.push(dataArr[index]);
+      }
+    }
+    return attendances;
   }
   function generateEventCards() {
     var clubEvents = getClubEvents(clubData["ID"], eventsArr);
@@ -1225,9 +1394,6 @@
     for (var index = 0; index < clubNotifs.length; index++) {
       var clubNotif = clubNotifs[index];
       var newNotifData = returnNewNotifData(clubNotif.id.replace("notif", ""));
-      console.log("index check: ");
-      console.log(index == 0);
-      console.log(newCard)
       if (index == 0 && newCard) {
         newNotifData = returnNewNotifData(clubNotif.id.replace("notif", ""), true);
         console.log("newNotifData: "+JSON.stringify(newNotifData));
@@ -1242,6 +1408,133 @@
     var eventCardC = document.querySelector(selector);
     while (eventCardC.firstChild) {
       eventCardC.removeChild(eventCardC.firstChild);
+    }
+  }
+  function returnNewAttnData(attnId) {
+    var attnCard = document.querySelector(`#attn${attnId}`);
+    var name = attnCard.querySelector(".attnTitle").value;
+    var code = attnCard.querySelector(".attnCode").value;
+    var endTiming = attnCard.querySelector(".attnEDate").value.split(" ");
+    var endDate = endTiming[0];
+    var endDateArr = endDate.split("/");
+    var zeroString2 = ""; 
+    var zeroString3 = "";
+    var cleanedMonth = parseInt(endDateArr[0]);
+    if (cleanedMonth < 10) {
+      zeroString2 = "0";
+    }
+    var cleanedDay = parseInt(endDateArr[1]);
+    if (cleanedDay < 10) {
+      zeroString3 = "0";
+    }
+    var cleanedYear = parseInt(endDateArr[2]);
+    endDate = zeroString2 + cleanedMonth.toString() + "/" + zeroString3 + cleanedDay.toString() + "/" + cleanedYear.toString();
+    if (!onlyNumber(cleanedMonth) || !onlyNumber(cleanedDay) || !onlyNumber(cleanedYear)) {
+      alert("Meeting end date typed incorrectly, use MM/DD/YYYY");
+      endDate = "";
+    }
+    var endTimeStr = endTiming[1];
+    var endTimeStrArr = endTimeStr.split(":");
+    var endTimeHour = parseInt(endTimeStrArr[0]);
+    var zeroString = "";
+    if (endTiming[2] == "PM") {
+      endTimeHour += 12;
+    }
+    if (endTimeHour < 10) {
+      zeroString = "0";
+    }
+    var endTime = zeroString + endTimeHour.toString() + ":" + endTimeStrArr[1];
+    if (!onlyNumber(endTimeHour) || !onlyNumber(endTimeStrArr[1])) {
+      alert("Meeting end time typed incorrectly, use HH:MM AM/PM");
+      endTime = "";
+    }
+    var startTiming = attnCard.querySelector(".attnSDate").value.split(" ");
+    var startDate = startTiming[0];
+    var startDateArr = startDate.split("/");
+    zeroString2 = ""; 
+    zeroString3 = "";
+    cleanedMonth = parseInt(startDateArr[0]);
+    if (cleanedMonth < 10) {
+      zeroString2 = "0";
+    }
+    cleanedDay = parseInt(startDateArr[1]);
+    if (cleanedDay < 10) {
+      zeroString3 = "0";
+    }
+    cleanedYear = parseInt(startDateArr[2]);
+    startDate = zeroString2 + cleanedMonth.toString() + "/" + zeroString3 + cleanedDay.toString() + "/" + cleanedYear.toString();
+    if (!onlyNumber(cleanedMonth) || !onlyNumber(cleanedDay) || !onlyNumber(cleanedYear)) {
+      alert("Meeting start date typed incorrectly, use MM/DD/YYYY");
+      startDate = "";
+    }
+    var startTimeStr = startTiming[1];
+    var startTimeStrArr = startTimeStr.split(":");
+    var startTimeHour = parseInt(startTimeStrArr[0]);
+    zeroString = "";
+    if (startTiming[2] == "PM") {
+      startTimeHour += 12;
+    }
+    if (startTimeHour < 10) {
+      zeroString = "0";
+    }
+    var startTime = zeroString + startTimeHour.toString() + ":" + startTimeStrArr[1];
+    if (!onlyNumber(startTimeHour) || !onlyNumber(startTimeStrArr[1])) {
+      alert("Meeting start time typed incorrectly, use HH:MM AM/PM");
+      startTime = "";
+    }
+    var deleteStr = name.split("-DELETE");
+    var deleteThis = false;
+    if (deleteStr.length != 1) { deleteThis = true; }
+    var jsonAttnReturn = { "Name": name, "ID": attnId, "Club-ID": clubData["ID"], "Code": code, "End-Date": endDate, "End-Time": endTime, "Start-Date": startDate, "Start-Time": startTime, "Delete": deleteThis };
+    return jsonAttnReturn;
+  }
+  function returnNewAttnsData(newCard=false) {
+    var clubAttns = document.querySelector(".attnCards").children;
+    var newAttnDataArr = [];
+    var newEventFromAttnData = [];
+    for (var index = 0; index < clubAttns.length; index++) {
+      var clubAttn = clubAttns[index];
+      var newAttnData = returnNewAttnData(clubAttn.id.replace("attn", ""));
+      if (index == 0 && newCard) {
+        newAttnData = returnNewAttnData(clubAttn.id.replace("attn", ""), true);
+        console.log("newAttnData: "+JSON.stringify(newAttnData));
+        var newEvent = { "Event-Name": newAttnData["Name"], "ID": newAttnData["ID"], "Club": clubData["ID"], "Description": `${findClubName(clubData["ID"])} meeting.`, "End-Date": newAttnData["End-Date"], "End-Time": newAttnData["End-Time"], "Max-Attendees": 0, "Start-Date": newAttnData["Start-Date"], "Start-Time": newAttnData["Start-Time"] };
+        newEventFromAttnData.push(newEvent);
+      }
+      console.log("attnData: "+JSON.stringify(newAttnData));
+      newAttnDataArr.push(newAttnData);
+    }
+    console.log("new attns data: "+JSON.stringify(newAttnDataArr));
+    return [newAttnDataArr, newEventFromAttnData];
+  }
+  function generateAttnCards() {
+    var clubAttns = getClubAttns(clubData["ID"], attnsArr);
+    var attnCardC = document.querySelector(".attnCards");
+    for (var index = 0; index < clubAttns.length; index++) {
+      var clubAttn = clubAttns[index]; //come back here
+      var newAttnCard = createAttnCard(clubAttn["Name"], clubAttn["ID"], clubAttn["Code"], clubAttn["Club-ID"], clubAttn["End-Date"], clubAttn["End-Time"], clubAttn["Start-Date"], clubAttn["Start-Time"]);
+      attnCardC.appendChild(newAttnCard);
+      $(`#datetimepicker${clubAttn["ID"]}-1Attn`).prop("data-td-target-input", "nearest");
+      $(`#datetimepicker${clubAttn["ID"]}-1Attn`).prop("data-td-target-toggle", "nearest");
+      $(`#datetimepicker${clubAttn["ID"]}-1AttnInput`).prop("data-td-target", `#datetimepicker${clubAttn["ID"]}-1Attn`);
+      $(`#datetimepicker${clubAttn["ID"]}-1AttnSpan`).prop("data-td-target", `#datetimepicker${clubAttn["ID"]}-1Attn`);
+      $(`#datetimepicker${clubAttn["ID"]}-1AttnSpan`).prop("data-td-toggle", `datetimepicker`);
+      new tempusDominus.TempusDominus(document.getElementById(`datetimepicker${clubAttn["ID"]}-1Attn`));
+      $(`#datetimepicker${clubAttn["ID"]}-2Attn`).prop("data-td-target-input", "nearest");
+      $(`#datetimepicker${clubAttn["ID"]}-2Attn`).prop("data-td-target-toggle", "nearest");
+      $(`#datetimepicker${clubAttn["ID"]}-2AttnInput`).prop("data-td-target", `#datetimepicker${clubAttn["ID"]}-2Attn`);
+      $(`#datetimepicker${clubAttn["ID"]}-2AttnSpan`).prop("data-td-target", `#datetimepicker${clubAttn["ID"]}-2Attn`);
+      $(`#datetimepicker${clubAttn["ID"]}-2AttnSpan`).prop("data-td-toggle", `datetimepicker`);
+      new tempusDominus.TempusDominus(document.getElementById(`datetimepicker${clubAttn["ID"]}-2Attn`));
+    }
+  }
+  function recreateAttnCards(oldData) {
+    deleteEvents(".attnCards");
+    var attnCardC = document.querySelector(".attnCards");
+    for (var index = 0; index < oldData.length; index++) {
+      var clubAttn = oldData[index]; //come back here
+      var oldAttnCard = createAttnCard(clubAttn["Name"], clubAttn["ID"], clubAttn["Code"], clubAttn["Club-ID"], clubAttn["End-Date"], clubAttn["End-Time"], clubAttn["Start-Date"], clubAttn["Start-Time"]);
+      attnCardC.appendChild(oldAttnCard);
     }
   }
   function recreateNotifCards(oldData) {
@@ -1987,6 +2280,97 @@
       toggleBCommDisabled();
     }
   });
+  //overflow attendance section
+  function toggleBAttnDisabled() {
+    $(".addAttnBtn").toggleClass("disabled");
+    $(".editAttnBtn").toggleClass("disabled");
+    $(".approveAttnBtn").toggleClass("disabled");
+    $(".cancelAttnBtn").toggleClass("disabled");
+  }
+  function toggleEFAttnDisabled() {
+    toggleBAttnDisabled();
+    $(".attnCards").children(".card").children(".card-body").children(".input-group").children(".form-control").prop("readonly", true);
+    $(".attnCards").children(".card").children(".card-body").children(".form-group").children(".form-control").prop("readonly", true);
+    $(".attnCards").children(".card").children(".card-body").children(".dropdown").children(".commAn").prop("disabled", true);
+  }
+  function toggleEAttnDisabled(editBtn = false) {
+    toggleBAttnDisabled();
+    if (editBtn) {
+      $(".input-group").children(".form-control").prop("readonly", false);
+      $(".form-group").children(".form-control").prop("readonly", false);
+      $(".attnCards").children(".card").children(".card-body").children(".dropdown").children(".attnAn").prop("disabled", false);
+    } else {
+      $(".input-group").children(".form-control").prop("readonly", !$(".input-group").children(".form-control").prop("readonly"));
+      $(".form-group").children(".form-control").prop("readonly", !$(".form-group").children(".form-control").prop("readonly"));
+      $(".attnCards").children(".card").children(".card-body").children(".dropdown").children(".attnAn").prop("disabled", !$(".attnCards").children(".card").children(".card-body").children(".dropdown").children(".attnAn").prop("disabled"));
+    }
+  }
+  function updateAttns(newAttnsData) {
+    var dataToSend = { "Attendance": newAttnsData };
+    $.ajax({
+      type: "POST",
+      url: "/management",
+      data: JSON.stringify(dataToSend),
+      contentType: "application/json",
+      dataType: 'json'
+    }).always(function () { getNewClubData(); });
+  }
+  $(".addAttnBtn").on("click", function () {
+    if (!$(this).hasClass("disabled")) {
+      oldAttnsData = returnNewAttnsData()[0];
+      var attnCardC = document.querySelector(".attnCards");
+      var nextAttnIds = getNextNotifId(attnsArr);
+      var newAttnCard = createAttnCard("", nextAttnIds, "", clubData["ID"], "00/00/0000", "00:00", "00/00/0000", "00:00", false);
+      attnCardC.prepend(newAttnCard);
+      $(`#datetimepicker${nextAttnIds}-1Attn`).prop("data-td-target-input", "nearest");
+      $(`#datetimepicker${nextAttnIds}-1Attn`).prop("data-td-target-toggle", "nearest");
+      $(`#datetimepicker${nextAttnIds}-1AttnInput`).prop("data-td-target", `#datetimepicker${nextAttnIds}-1Attn`);
+      $(`#datetimepicker${nextAttnIds}-1AttnSpan`).prop("data-td-target", `#datetimepicker${nextAttnIds}-1Attn`);
+      $(`#datetimepicker${nextAttnIds}-1AttnSpan`).prop("data-td-toggle", `datetimepicker`);
+      new tempusDominus.TempusDominus(document.getElementById(`datetimepicker${nextAttnIds}-1Attn`));
+      $(`#datetimepicker${nextAttnIds}-2Attn`).prop("data-td-target-input", "nearest");
+      $(`#datetimepicker${nextAttnIds}-2Attn`).prop("data-td-target-toggle", "nearest");
+      $(`#datetimepicker${nextAttnIds}-2AttnInput`).prop("data-td-target", `#datetimepicker${nextAttnIds}-2Attn`);
+      $(`#datetimepicker${nextAttnIds}-2AttnSpan`).prop("data-td-target", `#datetimepicker${nextAttnIds}-2Attn`);
+      $(`#datetimepicker${nextAttnIds}-2AttnSpan`).prop("data-td-toggle", `datetimepicker`);
+      new tempusDominus.TempusDominus(document.getElementById(`datetimepicker${nextAttnIds}-2Attn`));
+      addNewAttn = true;
+      toggleBAttnDisabled();
+    }
+  });
+  $(".editAttnBtn").on("click", function () {
+    if (!$(this).hasClass("disabled")) {
+      oldAttnsData = returnNewAttnsData()[0];
+      toggleEAttnDisabled(true);
+    }
+  });
+  $(".approveAttnBtn").on("click", function () {
+    if (!$(this).hasClass("disabled")) {
+      if (addNewAttn) {
+        var newAttnData = returnNewAttnsData(true);
+        updateAttns(newAttnData[0]);
+        updateEvents(newAttnData[1]);
+        toggleEFAttnDisabled();
+        addNewAttn = false;
+      } else { 
+        updateAttns(returnNewAttnsData()[0]);
+        toggleEAttnDisabled(); 
+      }
+    }
+  });
+  $(".cancelAttnBtn").on("click", function () {
+    if (!$(this).hasClass("disabled")) {
+      if (addNewAttn) {
+        var attnCardC = document.querySelector(".attnCards");
+        var attnCardCChildren = attnCardC.children;
+        attnCardC.removeChild(attnCardCChildren[0]);
+        addNewAttn = false;
+      } else {
+        recreateAttnCards(oldAttnsData);
+      }
+      toggleBAttnDisabled();
+    }
+  });
 
   $(document).ready(function () {
     $(".userEmail").css("display", "none");
@@ -1995,8 +2379,8 @@
     const fetch3 = fetch('/events/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
     const fetch4 = fetch('/comm/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
     const fetch5 = fetch('/service/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
-    Promise.all([fetch2, fetch3, fetch4, fetch5]).then(function (JsonData) {
-      //userArr = JsonData[0]["Items"];
+    const fetch6 = fetch('/attendance/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
+    Promise.all([fetch2, fetch3, fetch4, fetch5, fetch6]).then(function (JsonData) {
       try {
         userArr = JSON.parse({{ userData | tojson | safe }})["Items"];
       } catch (error) { }
@@ -2004,11 +2388,13 @@
       eventsArr = JsonData[1]["Items"];
       commsArr = JsonData[2]["Items"];
       serviceArr = JsonData[3]["Items"];
+      attnsArr = JsonData[4]["Items"];
       var currentClubID = window.location.hash.replace("#own-", "");
       loadClubData(currentClubID);
       generateEventCards();
       generateServiceCards();
       generateNotifCards();
+      generateAttnCards();
       if (vw <= 768) {
         $(".typeCol").removeClass("col-sm");
         $(".typeCol").addClass("row");

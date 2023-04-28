@@ -150,6 +150,10 @@ def route_map():
 def route_comm_data():
   return jsonify(Items=awsController.get_comm_items())
 
+@app.route("/attendance/json")
+def route_attn_data():
+  return jsonify(Items=awsController.get_attn_items())
+
 @app.route("/clubs", methods=['POST', 'GET'])
 def route_clubs_list():
   if (request.method == "POST"):
@@ -415,7 +419,26 @@ def route_management():
         print("error occurred when logging")
       awsController.add_log(next_log_id(), get_user_email(), "Send-Message", logTime, logDetails)
     except:
-      print("not service data")
+      print("not comm data")
+    try:
+      editAttns = editData["Attendance"]
+      awsController.edit_club_attendance(editAttns)
+      logDetails = ""
+      logTime = ""
+      try:
+        logTime = get_now()
+      except:
+        print("could not get time")
+      try:
+        logDetails = "Sending or editing club attendance, user: "
+        logDetails += session["email"]
+        logDetails += ", edited data: "
+        logDetails += json.dumps(editAttns)
+      except:
+        print("error occurred when logging")
+      awsController.add_log(next_log_id(), get_user_email(), "Add-Attendance", logTime, logDetails)
+    except:
+      print("not attn data")
   return render_template("management.html", email=get_user_email(), userData=get_users_data())
 
 @app.route("/logout")
