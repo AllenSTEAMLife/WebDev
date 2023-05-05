@@ -180,6 +180,16 @@
       </div>
     </div>
     <div style="margin-top:30px;"></div>
+    <h2>My Meetings</h2>
+    <div class="container">
+      <div class="row" style="margin-top:10px;">
+        <div class="col-6">
+          <h6 class="noMeetingTxt">No meetings to display.</h6>
+          <div class="meetingsGroupC"></div>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:30px;"></div>
     <h2>My Events</h2>
     <div class="container">
       <div class="row" style="margin-top:10px;">
@@ -243,7 +253,8 @@
     </div>
     <div style="margin-top:30px;"></div>
   </div>
-  <div class="userEmail">{{ email }}</div>
+  <div class="userEmail">matthew.caldarola@student.allenisd.org</div>
+  <!--{{ email }}-->
 </div>
 {% include "components/footer.html" %}
 
@@ -253,6 +264,7 @@
   var commArr;
   var eventsArr;
   var serviceArr;
+  var attendanceArr;
   var userClubs = [];
   var userOClubs = [];
   var userService = [];
@@ -671,16 +683,174 @@
     eventDes.appendChild(eventDesTxt);
     return eventDescription;
   }
+  function isHappeningNow(startDate, endDate, startTime, endTime) {
+    var currentTime = new Date();
+    var splitStartDate = startDate.split("/");
+    var splitStartTime = startTime.split(":");
+    var cStartDate = new Date(parseInt(splitStartDate[2]), (parseInt(splitStartDate[0])-1), parseInt(splitStartDate[1]), parseInt(splitStartTime[0]), parseInt(splitStartTime[1]), 0, 0);
+    var splitEndDate = endDate.split("/");
+    var splitEndTime = endTime.split(":");
+    var cEndDate = new Date(parseInt(splitEndDate[2]), (parseInt(splitEndDate[0])-1), parseInt(splitEndDate[1]), parseInt(splitEndTime[0]), parseInt(splitEndTime[1]), 0, 0);
+    return (currentTime >= cStartDate) && (currentTime <= cEndDate);
+  }
+  function currentMeetings() {
+    var currentMeetings = [];
+    if ((userClubs[0] != "All") && (userClubs[0] != null) && (userClubs[0] != "")) {
+      for (var index2 = 0; index2 < attendanceArr.length; index2++) {
+        var attItem = attendanceArr[index2];
+        var happening = isHappeningNow(attItem["Start-Date"], attItem["End-Date"], attItem["Start-Time"], attItem["End-Time"]);
+        var inClub = checkInArr(userClubs, attItem["Club-ID"]);
+        if (happening && inClub) {
+          currentMeetings.push(attItem);
+        }
+      }
+    } else {
+      for (var index2 = 0; index2 < attendanceArr.length; index2++) {
+        var attItem = attendanceArr[index2];
+        var happening = isHappeningNow(attItem["Start-Date"], attItem["End-Date"], attItem["Start-Time"], attItem["End-Time"]);
+        if (happening) {
+          currentMeetings.push(attItem);
+        }
+      }
+    }
+    $(".noMeetingTxt").css("display", "block");
+    if (currentMeetings.length > 0) {
+      $(".noMeetingTxt").css("display", "none");
+    }
+    return currentMeetings;
+  }
+  function getDateRange(startDate, startTime, endDate, endTime) {
+    var dateRangeString = "";
+    var startTimeArr = startTime.split(":");
+    var startHour = parseInt(startTimeArr[0]);
+    var startAmPm = "am";
+    var endTimeArr = endTime.split(":");
+    var endHour = parseInt(endTimeArr[0]);
+    var endAmPm = "am";
+    if (startHour >= 12) {
+      startAmPm = "pm";
+      if (startHour != 12) {
+        if (startHour == 24) {
+          startAmPm = "am";
+        }
+        startHour -= 12;
+      }
+    }
+    if (endHour >= 12) {
+      endAmPm = "pm";
+      if (endHour != 12) {
+        if (endHour == 24) {
+          endAmPm = "am";
+        }
+        endHour -= 12;
+      }
+    }
+    var mStartTime = startHour.toString()+":"+startTimeArr[1]+" "+startAmPm;
+    var mEndTime = endHour.toString()+":"+endTimeArr[1]+" "+endAmPm;
+    if (startDate == endDate) {
+      dateRangeString = `${startDate}, ${mStartTime} - ${mEndTime}`;
+    } else {
+      dateRangeString = `${startDate} ${mStartTime} - ${endDate} ${mEndTime}`;
+    }
+    return dateRangeString;
+  }
+  function updateAttendance(codeInput, meetingData) {
+    var dataToSend = { "Attendance": [codeInput, meetingData] };
+    if (meetingData["ID"]) {
+      $.ajax({
+        type: "POST",
+        url: "/dashboard",
+        data: JSON.stringify(dataToSend),
+        contentType: "application/json",
+        dataType: 'json'
+      }).always(function() { getNewAttendanceData(); });
+    }
+  }
+  function signInBtnClicked() {
+    var meetingId = parseInt(this.id.split("meetingB-")[1]);
+    var codeInput = $(`#meeting-${meetingId}`).val();
+    updateAttendance(codeInput, attendanceArr[meetingId]);
+  };
+  function createMeetingField(meetingData, disabled) {
+    var fieldGroupC = document.createElement("div");
+    fieldGroupC.style.marginTop = "20px";
+    fieldGroupC.style.marginBottom = "10px";
+    //meeting information text
+    var meetingInfo = document.createElement("h6");
+    var meetingInfoTxt = document.createTextNode(`${meetingData["Name"]}: ${getDateRange(meetingData["Start-Date"], meetingData["Start-Time"], meetingData["End-Date"], meetingData["End-Time"])}`);
+    meetingInfo.appendChild(meetingInfoTxt);
+    fieldGroupC.appendChild(meetingInfo);
+    //meeting form field grouping
+    var fieldGroup = document.createElement("div");
+    fieldGroup.classList.add("input-group", "mb-3");
+    fieldGroupC.appendChild(fieldGroup);
+    //meeting code input
+    var meetingCodeInput = document.createElement("input");
+    meetingCodeInput.classList.add("form-control");
+    meetingCodeInput.placeholder = "Meeting Code";
+    meetingCodeInput.id = `meeting-${meetingData["ID"]}`;
+    fieldGroup.appendChild(meetingCodeInput);
+    //meeting sign in button
+    var signInC = document.createElement("div");
+    signInC.classList.add("input-group-append");
+    fieldGroup.appendChild(signInC);
+    var signInButton = document.createElement("button");
+    signInButton.classList.add("btn", "btn-success", "signInBtn");
+    signInButton.id = `meetingB-${meetingData["ID"]}`;
+    signInButton.addEventListener('click', signInBtnClicked);
+    signInC.appendChild(signInButton);
+    var signInBtnTxtStr = "Sign In";
+    if (disabled) {  
+      meetingCodeInput.disabled = true;
+      meetingCodeInput.placeholder = "";
+      signInButton.classList.add("disabled");
+      signInBtnTxtStr = "Signed In";
+    }
+    var signInButtonTxt = document.createTextNode(signInBtnTxtStr);
+    signInButton.appendChild(signInButtonTxt);
+    return fieldGroupC;
+  }
+  function deleteElements(selector) {
+    var eventCardC = document.querySelector(selector);
+    while (eventCardC.firstChild) {
+      eventCardC.removeChild(eventCardC.firstChild);
+    }
+  }
+  function generateCurrentMeetings() {
+    var meetingsData = currentMeetings();
+    var meetingsGroupC = document.querySelector(".meetingsGroupC");
+    var userEmail = "";
+    try {
+      userEmail = document.querySelector(".userEmail").textContent;
+    }
+    catch (error) { }    
+    for (var index = 0; index < meetingsData.length; index++) {
+      var meeting = meetingsData[index];
+      var disabled = checkInArr(meeting["Members-Attn"], userEmail);
+      var meetingField = createMeetingField(meeting, disabled);
+      meetingsGroupC.appendChild(meetingField);
+    }
+  }
+
   $(document).ready(function () {
     $(".userEmail").css("display", "none");
   });
 
+  function getNewAttendanceData() {
+    const fetch1 = fetch('/attendance/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
+    Promise.all([fetch1]).then(function (JsonData) {
+      attendanceArr = JsonData[0]["Items"];
+      deleteElements(".meetingsGroupC");
+      generateCurrentMeetings();
+    });
+  }
   //const fetch1 = fetch('/user/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
   const fetch2 = fetch('/clubs/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
   const fetch3 = fetch('/comm/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
   const fetch4 = fetch('/events/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
   const fetch5 = fetch('/service/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
-  Promise.all([fetch2, fetch3, fetch4, fetch5]).then(function (JsonData) {
+  const fetch6 = fetch('/attendance/json', { mode: 'cors' }).then(function (resp) { return resp.json(); });
+  Promise.all([fetch2, fetch3, fetch4, fetch5, fetch6]).then(function (JsonData) {
     //userArr = JsonData[0]["Items"];
     try {
         userArr = JSON.parse({{ userData | tojson | safe }})["Items"];
@@ -692,6 +862,7 @@
     eventsArr = sortItems(eventsArr);
     serviceArr = JsonData[3]["Items"];
     serviceArr = sortItems(serviceArr);
+    attendanceArr = JsonData[4]["Items"];
     $(".noJClubTxt").css("display", "block");
     $(".noOClubTxt").css("display", "block");
     getUserData();
@@ -815,6 +986,8 @@
     });
   }
     catch (error) { }
+  //update meetings
+  generateCurrentMeetings();
   });
 </script>
 

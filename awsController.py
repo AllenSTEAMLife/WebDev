@@ -720,4 +720,9 @@ def last_log_id():
         if (thisId > lastId):
             lastId = thisId
     return lastId
-
+def update_attendance(email, meetingClubId, meetingId):
+    meetingItem = attnTable.get_item(clubid=int(meetingClubId), id=int(meetingId))
+    currentUsers = list(meetingItem["users"])
+    currentUsers.append("matthew.caldarola@student.allenisd.org")
+    meetingItem["users"] = currentUsers
+    meetingItem.partial_save()

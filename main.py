@@ -20,7 +20,6 @@ import pytz
 app = Flask(__name__, static_url_path="/static", static_folder="static")
 
 
-
 #app.config.from_envvar('CONFIG')
 #timeshift = app.config.get("TIMEZONE_SHIFT")
 
@@ -291,9 +290,14 @@ def route_user_data():
     return jsonify(Items=[])
   return jsonify(Items=[])
 
-@app.route("/dashboard")
-@dashboard_login_is_required
+@app.route("/dashboard", methods=['POST', 'GET'])
+#@dashboard_login_is_required
 def route_dashboard():
+  if (request.method == "POST"):
+    receivedData = request.get_json()
+    verifySignInData = receivedData["Attendance"]
+    if (verifySignInData[0] == verifySignInData[1]["Code"]):
+      awsController.update_attendance(session["email"], verifySignInData[1]["Club-ID"], verifySignInData[1]["ID"])
   return render_template("dashboard.html", email=get_user_email(), name=get_user_name(), userData=get_users_data())
 
 @app.errorhandler(401)

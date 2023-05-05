@@ -33,6 +33,10 @@
     display: none;
   }
 
+  .attendanceLC {
+    display: none;
+  }
+
   .visitPage,
   .addEventBtn,
   .editEventBtn,
@@ -100,10 +104,13 @@
       <a class="nav-link clubMNav" id="clubNav3" href="#">Service</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link clubMNav" id="clubNav4" href="#">Communication</a>
+      <a class="nav-link clubMNav" id="clubNav4" href="#">Meetings</a>
     </li>
     <li class="nav-item">
-      <a class="nav-link clubMNav" id="clubNav5" href="#">Attendance</a>
+      <a class="nav-link clubMNav" id="clubNav5" href="#">Communication</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link clubMNav" id="clubNav6" href="#">Attendance</a>
     </li>
   </ul>
   <div class="container generalInfoC">
@@ -366,7 +373,7 @@
   </div>
   <div class="container attnsC">
     <div style="margin-top:20px;"></div>
-    <h4>Attendance&nbsp;&nbsp;&nbsp;<span><button type="button" class="btn btn-primary addAttnBtn"><i
+    <h4>Meetings&nbsp;&nbsp;&nbsp;<span><button type="button" class="btn btn-primary addAttnBtn"><i
             class="fa-solid fa-plus"></i></button></span>&nbsp;&nbsp;<span><button type="button"
           class="btn btn-primary editAttnBtn"><i
             class="fa-solid fa-pen-to-square"></i></button></span>&nbsp;&nbsp;<span><button type="button"
@@ -375,6 +382,12 @@
           class="btn btn-danger cancelAttnBtn disabled"><i class="fa-solid fa-xmark"></i></button></span></h4>
     <div style="margin-top:10px;"></div>
     <div class="card-group attnCards"></div>
+  </div>
+  <div class="container attendanceLC">
+    <div style="margin-top:20px;"></div>
+    <h4>Attendance</h4>
+    <div style="margin-top:10px;"></div>
+    <div class="card-group attendanceLDrops"></div>
   </div>
   <div class="userEmail">{{ email }}</div>
 </div>
@@ -452,6 +465,14 @@
     }
     return "";
   }
+  function findEmailOfUser(userId) {
+    for (var index = 0; index < userArr.length; index++) {
+      if (userArr[index]["ID"] == userId) {
+        return userArr[index]["User-Email"];
+      }
+    }
+    return "";
+  }
   function certifyUser(clubId) {
     var userEmailTxt = "";
     try {
@@ -487,6 +508,7 @@
     $(".serviceC").css("display", "none");
     $(".commsC").css("display", "none");
     $(".attnsC").css("display", "none");
+    $(".attendanceLC").css("display", "none");
   }
   $(".clubMNav").on("click", function () {
     clubRemoveActive(".clubMNav");
@@ -504,10 +526,13 @@
         $(".serviceC").css("display", "block");
         break;
       case 4:
-        $(".commsC").css("display", "block");
+        $(".attnsC").css("display", "block");
         break;
       case 5:
-        $(".attnsC").css("display", "block");
+        $(".commsC").css("display", "block");
+        break;
+      case 6:
+        $(".attendanceLC").css("display", "block");
         break;
       default:
         $(".generalInfoC").css("display", "block");
@@ -714,7 +739,7 @@
       populateGeneralInfo(clubId, clubData["Type"], clubData["Subtype"], clubData["Description"], clubData["Leader"], clubData["Sponsor"], clubData["Meeting"], clubData["Location"][0], clubData["Location"][1], clubData["Website"], clubData["Social"]);
       var memberArr = getOriginalMembers(clubId, "Clubs-Joined");
       populateMemberInfo(memberArr);
-
+      recreateAttendanceLDrops();
     }
   }
   function getArrayOfNames(dataArr) {
@@ -830,8 +855,6 @@
       tempArr.push(findUserName(tempCurrentMArr[index]));
       memberRArr.push(tempArr);
     }
-    console.log("members add: "+memberAArr);
-    console.log("members remove: "+memberRArr);
     var jsonMemberReturn = { "Members-Add": memberAArr, "Members-Remove": memberRArr };
     return jsonMemberReturn;
   }
@@ -1212,11 +1235,129 @@
     var attnCodeInput = document.createElement("input");
     attnCodeInput.classList.add("form-control", "attnCode");
     attnCodeInput.type = "text";
-    attnCodeInput.placeholder = "Type attendance code here.";
+    attnCodeInput.placeholder = "Type meeting code here.";
     attnCodeInput.readOnly = disable;
     attnCodeInput.value = checkInCode;
     attnCodeC.appendChild(attnCodeInput);
     return cardC;
+  }
+  function getDateRange(startDate, startTime, endDate, endTime) {
+    var dateRangeString = "";
+    var startTimeArr = startTime.split(":");
+    var startHour = parseInt(startTimeArr[0]);
+    var startAmPm = "am";
+    var endTimeArr = endTime.split(":");
+    var endHour = parseInt(endTimeArr[0]);
+    var endAmPm = "am";
+    if (startHour >= 12) {
+      startAmPm = "pm";
+      if (startHour != 12) {
+        if (startHour == 24) {
+          startAmPm = "am";
+        }
+        startHour -= 12;
+      }
+    }
+    if (endHour >= 12) {
+      endAmPm = "pm";
+      if (endHour != 12) {
+        if (endHour == 24) {
+          endAmPm = "am";
+        }
+        endHour -= 12;
+      }
+    }
+    var mStartTime = startHour.toString()+":"+startTimeArr[1]+" "+startAmPm;
+    var mEndTime = endHour.toString()+":"+endTimeArr[1]+" "+endAmPm;
+    if (startDate == endDate) {
+      dateRangeString = `${startDate}, ${mStartTime} - ${mEndTime}`;
+    } else {
+      dateRangeString = `${startDate} ${mStartTime} - ${endDate} ${mEndTime}`;
+    }
+    return dateRangeString;
+  }
+  function createAttendanceLEntry(dateRange, attendanceLName, attendanceLSectionId, attendanceLId) {
+    var attendanceLEntry = document.createElement("a");
+    attendanceLEntry.classList.add("list-group-item", "list-group-item-action");
+    attendanceLEntry.dataset.toggle = "list";
+    attendanceLEntry.href = `#list-${attendanceLSectionId}-${attendanceLId}`;
+    var attendanceLEntryTxt = document.createTextNode(`${dateRange} ${attendanceLName}`);
+    attendanceLEntry.appendChild(attendanceLEntryTxt);
+    return attendanceLEntry;
+  }
+  function memberEmailsFromIds(memberArr) {
+    var memberEmails = [];
+    for (var index = 0; index < memberArr.length; index++) {
+      memberEmails.push(findEmailOfUser(memberArr[index]));
+    }
+    return memberEmails;
+  }
+  function arrayToString(arrayOfEmails) {
+    var arrayString = "";
+    for (var index = 0; index < arrayOfEmails.length; index++) {
+      arrayString += arrayOfEmails[index];
+      if ((index + 1) != arrayOfEmails.length) {
+        arrayString += ",";
+      }
+    }
+    return arrayString;
+  }
+  function createAttendanceLDescription(attendedMembersArr, attendanceLSectionId, attendanceLId) {
+    var attendanceLDescription = document.createElement("div");
+    attendanceLDescription.classList.add("tab-pane", "fade");
+    attendanceLDescription.id = `list-${attendanceLSectionId}-${attendanceLId}`;
+    var attendanceLMembers = document.createElement("p");
+    attendanceLMembers.style.wordWrap = "break-word";
+    var attendanceLMembersTxt = document.createTextNode(`${arrayToString(attendedMembersArr)}`);
+    attendanceLMembers.appendChild(attendanceLMembersTxt);
+    attendanceLDescription.appendChild(attendanceLMembers);
+    return attendanceLDescription;
+  }
+  function createAttendanceLSection(monthDataArr, monthTxt, yearTxt, sectionId) {
+    var sectionC = document.createElement("div");
+    sectionC.classList.add("container");
+    sectionC.style.marginBottom = "15px";
+    var spaceDiv = document.createElement("div");
+    spaceDiv.style.marginTop = "30px";
+    sectionC.appendChild(spaceDiv);
+    //create the title for the attendance section
+    var sectionTitle = document.createElement("h2");
+    var sectionTitleTxt = document.createTextNode(`${monthTxt} ${yearTxt}`);
+    sectionTitle.appendChild(sectionTitleTxt);
+    sectionC.appendChild(sectionTitle);
+    //create the attendance listing container
+    var attendanceSectionR = document.createElement("div");
+    attendanceSectionR.classList.add("row");
+    sectionC.appendChild(attendanceSectionR);
+    var attendanceSectionC1 = document.createElement("div");
+    attendanceSectionC1.classList.add("col-6");
+    var attendanceSectionC2 = document.createElement("div");
+    attendanceSectionC2.classList.add("col-6");
+    attendanceSectionR.appendChild(attendanceSectionC1);
+    attendanceSectionR.appendChild(attendanceSectionC2);
+    var attSectionC1List = document.createElement("div");
+    attSectionC1List.classList.add("list-group");
+    attSectionC1List.id = `list-tab-${sectionId}`;
+    attendanceSectionC1.appendChild(attSectionC1List);
+    var attSectionC2List = document.createElement("div");
+    attSectionC2List.classList.add("tab-content");
+    attSectionC2List.id = `nav-tabContent-${sectionId}`;
+    attendanceSectionC2.appendChild(attSectionC2List);
+    //populate the listing container with attendance items
+    for (var index = 0; index < monthDataArr.length; index++) {
+      var thisMonthDataObj = monthDataArr[index];
+      var thisDateRange = getDateRange(thisMonthDataObj["Start-Date"], thisMonthDataObj["Start-Time"], thisMonthDataObj["End-Date"], thisMonthDataObj["End-Time"]);
+      var newAttendanceLEntry = createAttendanceLEntry(thisDateRange, thisMonthDataObj["Name"], sectionId, parseInt(thisMonthDataObj["ID"]));
+      var newAttendanceLDesc;
+      if (thisMonthDataObj["Members-Attn"] == undefined || thisMonthDataObj["Members-Attn"] == []) {
+        newAttendanceLDesc = createAttendanceLDescription([], sectionId, parseInt(thisMonthDataObj["ID"]));
+      } else {
+        newAttendanceLDesc = createAttendanceLDescription(thisMonthDataObj["Members-Attn"], sectionId, parseInt(thisMonthDataObj["ID"]));
+      }
+      attSectionC1List.appendChild(newAttendanceLEntry);
+      attSectionC2List.appendChild(newAttendanceLDesc);
+    }
+    return sectionC;
   }
   function getClubEvents(clubId, dataArr) {
     var events = [];
@@ -1408,12 +1549,9 @@
       var newNotifData = returnNewNotifData(clubNotif.id.replace("notif", ""));
       if (index == 0 && newCard) {
         newNotifData = returnNewNotifData(clubNotif.id.replace("notif", ""), true);
-        console.log("newNotifData: "+JSON.stringify(newNotifData));
       }
-      console.log("notifData: "+JSON.stringify(newNotifData));
       newNotifDataArr.push(newNotifData);
     }
-    console.log("new comms data: "+JSON.stringify(newNotifDataArr));
     return newNotifDataArr;
   }
   function deleteEvents(selector) {
@@ -1509,14 +1647,11 @@
       var newAttnData = returnNewAttnData(clubAttn.id.replace("attn", ""));
       if (index == 0 && newCard) {
         newAttnData = returnNewAttnData(clubAttn.id.replace("attn", ""), true);
-        console.log("newAttnData: "+JSON.stringify(newAttnData));
         var newEvent = { "Event-Name": newAttnData["Name"], "ID": newAttnData["ID"], "Club": clubData["ID"], "Description": `${findClubName(clubData["ID"])} meeting.`, "End-Date": newAttnData["End-Date"], "End-Time": newAttnData["End-Time"], "Max-Attendees": 0, "Start-Date": newAttnData["Start-Date"], "Start-Time": newAttnData["Start-Time"] };
         newEventFromAttnData.push(newEvent);
       }
-      console.log("attnData: "+JSON.stringify(newAttnData));
       newAttnDataArr.push(newAttnData);
     }
-    console.log("new attns data: "+JSON.stringify(newAttnDataArr));
     return [newAttnDataArr, newEventFromAttnData];
   }
   function generateAttnCards() {
@@ -1540,6 +1675,104 @@
       new tempusDominus.TempusDominus(document.getElementById(`datetimepicker${clubAttn["ID"]}-2Attn`));
     }
   }
+  function isElementFound(elementToFind, dataArr) {
+    for (var index = 0; index < dataArr.length; index++) {
+      if (dataArr[index] == elementToFind) {
+        return true;
+      }
+    }
+    return false;
+  }
+  function returnArrayOfNArrays(numberOfArrays) {
+    var arrayOfArrays = [];
+    for (var i = 0; i < numberOfArrays; i++) {
+      arrayOfArrays.push([]);
+    }
+    return arrayOfArrays;
+  }
+  function splitIntoYears(attDataArr) {
+    var yearNumsArr = [];
+    for (var index = 0; index < attDataArr.length; index++) { //first, create an array of years to separate into
+      var thisYear = attDataArr[index]["Start-Date"].split("/")[2];
+      thisYear = parseInt(thisYear);
+      if (!isElementFound(thisYear, yearNumsArr)) {
+        yearNumsArr.push(thisYear);
+      }
+    }
+    yearNumsArr.sort(); 
+    yearNumsArr.reverse(); //make sure the array of nums is in descending order
+    var yearSplitArr = returnArrayOfNArrays(yearNumsArr.length);
+    for (var index = 0; index < attDataArr.length; index++) { //next, separate data based off of years
+      var dataArrObj = attDataArr[index];
+      var thisYear = dataArrObj["Start-Date"].split("/")[2];
+      thisYear = parseInt(thisYear);
+      yearSplitArr[yearNumsArr.indexOf(thisYear)].push(dataArrObj);
+    }
+    return [yearNumsArr, yearSplitArr];
+  }
+  function splitIntoMonths(attDataArr) {
+    var monthSplitArr = [[], [], [], [], [], [], [], [], [], [], [], []];
+    for (var index = 0; index < attDataArr.length; index++) {
+      var thisMonth = attDataArr[index]["Start-Date"].split("/")[0];
+      thisMonth = parseInt(thisMonth);
+      monthSplitArr[12 - thisMonth].push(attDataArr[index]); //sorts months in descending order
+    }
+    return monthSplitArr;
+  }
+  function findIdsOfElement(monthDataArr, dayNumber) {
+    var elementIds = [];
+    for (var index = 0; index < monthDataArr.length; index++) {
+      var thisDay = monthDataArr[index]["Start-Date"].split("/")[1];
+      thisDay = parseInt(thisDay);
+      if (thisDay == dayNumber) {
+        elementIds.push(index);
+      }
+    }
+    return elementIds;
+  }
+  function sortIdsByNameAlphabetical(monthDataArr, idsArr) {
+    var nameDictionary = {};
+    var alphabeticalArr = [];
+    for (var index = 0; index < idsArr.length; index++) {
+      var correspondingMonthObj = monthDataArr[idsArr[index]];
+      nameDictionary[`${correspondingMonthObj["Name"]}`] = correspondingMonthObj;
+    }
+    var dictKeys = Object.keys(nameDictionary);
+    dictKeys.sort();
+    for (var index = 0; index < dictKeys.length; index++) {
+      alphabeticalArr.push(nameDictionary[dictKeys[index]]);
+    }
+    return alphabeticalArr;
+  }
+  function sortEventsInMonth(monthDataArr) {
+    var daysArr = [];
+    for (var index = 0; index < monthDataArr.length; index++) {
+      var thisDay = monthDataArr[index]["Start-Date"].split("/")[1];
+      thisDay = parseInt(thisDay);
+      if (!isElementFound(thisDay, daysArr)) {
+        if (thisDay < 10) {
+          thisDay = `0${thisDay}`;
+        }
+        daysArr.push(`${thisDay}`);
+      }
+    }
+    daysArr.sort();
+    daysArr.reverse();
+    var sortedEventsByDay = [];
+    for (var index = 0; index < daysArr.length; index++) {
+      var thisDayNumber = parseInt(daysArr[index]);
+      var thisDaySorted = sortIdsByNameAlphabetical(monthDataArr, findIdsOfElement(monthDataArr, thisDayNumber));
+      for (var index2 = 0; index2 < thisDaySorted.length; index2++) {
+        sortedEventsByDay.push(thisDaySorted[index2]);
+      }
+    }
+    return sortedEventsByDay;
+  }
+  function monthNumToTxt(monthNumToTxt) {
+    var monthNameArr = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    monthNameArr.reverse(); //reverse month names to be in descending order
+    return monthNameArr[monthNumToTxt];
+  }
   function recreateAttnCards(oldData) {
     deleteEvents(".attnCards");
     var attnCardC = document.querySelector(".attnCards");
@@ -1547,6 +1780,27 @@
       var clubAttn = oldData[index]; //come back here
       var oldAttnCard = createAttnCard(clubAttn["Name"], clubAttn["ID"], clubAttn["Code"], clubAttn["Club-ID"], clubAttn["End-Date"], clubAttn["End-Time"], clubAttn["Start-Date"], clubAttn["Start-Time"]);
       attnCardC.appendChild(oldAttnCard);
+    }
+  }
+  function recreateAttendanceLDrops() {
+    deleteEvents(".attendanceLDrops");
+    var clubAttns = getClubAttns(clubData["ID"], attnsArr);
+    var attendanceLDrops = document.querySelector(".attendanceLDrops");
+    var clubAttnsInYears = splitIntoYears(clubAttns); //first separate into years
+    var clubYearsAttns = clubAttnsInYears[0];
+    var clubSplitYAttns = clubAttnsInYears[1];
+    var thisSectionId = 0;
+    for (var i = 0; i < clubSplitYAttns.length; i++) { //go into each year
+      var clubMonthAttns = splitIntoMonths(clubSplitYAttns[i]);
+      for (var index = 0; index < clubMonthAttns.length; index++) { //then go into each month
+        var thisMonthAttendance = clubMonthAttns[index];
+        if (thisMonthAttendance.length > 0) {
+          thisMonthAttendance = sortEventsInMonth(thisMonthAttendance);
+          var newAttendanceLSection = createAttendanceLSection(thisMonthAttendance, monthNumToTxt(index), clubYearsAttns[i], thisSectionId);
+          attendanceLDrops.appendChild(newAttendanceLSection);
+          thisSectionId++;
+        }
+      }
     }
   }
   function recreateNotifCards(oldData) {
@@ -2366,7 +2620,7 @@
         addNewAttn = false;
       } else { 
         updateAttns(returnNewAttnsData()[0]);
-        toggleEAttnDisabled(); 
+        toggleEAttnDisabled();
       }
     }
   });
@@ -2383,6 +2637,22 @@
       toggleBAttnDisabled();
     }
   });
+
+  $(".list-group-item").on("click", function () {
+    $(".list-group-item").removeClass("active");
+    $(".list-group-item").css("background-color","white");
+    $(this).addClass("active");
+    $(".tab-pane").removeClass("show");
+    $(".tab-pane").removeClass("active");
+    var thisAttendanceLId = $(this).prop("href").split("#list-")[1];
+    $(`#list-${thisAttendanceLId}`).addClass("show");
+    $(`#list-${thisAttendanceLId}`).addClass("active");
+    if (colorScheme == 1) {
+      $(".list-group-item.active").css("background-color", "#242424");
+    } else {
+      $(".list-group-item.active").css("background-color", "#007bff");
+    }
+    });
 
   $(document).ready(function () {
     $(".userEmail").css("display", "none");
