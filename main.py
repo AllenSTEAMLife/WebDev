@@ -291,13 +291,13 @@ def route_user_data():
   return jsonify(Items=[])
 
 @app.route("/dashboard", methods=['POST', 'GET'])
-#@dashboard_login_is_required
+@dashboard_login_is_required
 def route_dashboard():
   if (request.method == "POST"):
     receivedData = request.get_json()
     verifySignInData = receivedData["Attendance"]
     if (verifySignInData[0] == verifySignInData[1]["Code"]):
-      awsController.update_attendance(session["email"], verifySignInData[1]["Club-ID"], verifySignInData[1]["ID"])
+      awsController.update_attendance(get_user_email(), verifySignInData[1]["Club-ID"], verifySignInData[1]["ID"])
   return render_template("dashboard.html", email=get_user_email(), name=get_user_name(), userData=get_users_data())
 
 @app.errorhandler(401)
@@ -331,8 +331,6 @@ def route_management():
     editData = request.get_json()
     try:
       editInfo = editData["Club"]
-      print("add owners: ",editInfo["Add-Owners"])
-      print("remove owners: ",editInfo["Remove-Owners"])
       editMembers = editData["Member"]
       awsController.edit_club_info(editInfo["Club-Name"], editInfo["ID"], editInfo["Description"], editInfo["Leaders"], editInfo["Location"], editInfo["Meeting"], editInfo["Social"], editInfo["Sponsors"], editInfo["Subtype"], editInfo["Type"], editInfo["Website"], editInfo["Add-Owners"], editInfo["Remove-Owners"])
       awsController.edit_club_member(editMembers["Members-Add"], editMembers["Members-Remove"], editInfo["ID"])

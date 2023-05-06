@@ -253,8 +253,7 @@
     </div>
     <div style="margin-top:30px;"></div>
   </div>
-  <div class="userEmail">matthew.caldarola@student.allenisd.org</div>
-  <!--{{ email }}-->
+  <div class="userEmail">{{ email }}</div>
 </div>
 {% include "components/footer.html" %}
 
@@ -766,10 +765,23 @@
       }).always(function() { getNewAttendanceData(); });
     }
   }
+  function findAttArrId(meetingId) {
+    var attArrIndex = -1;
+    for (var index = 0; index < attendanceArr.length; index++) {
+      if (parseInt(attendanceArr[index]["ID"]) == meetingId) {
+        attArrIndex = index;
+      }
+    }
+    return attArrIndex;
+  }
   function signInBtnClicked() {
     var meetingId = parseInt(this.id.split("meetingB-")[1]);
     var codeInput = $(`#meeting-${meetingId}`).val();
-    updateAttendance(codeInput, attendanceArr[meetingId]);
+    var attArrIndex = findAttArrId(meetingId);
+    var userEmail = $(".userEmail").text();
+    if ((attArrIndex != -1) && (userEmail != "Other-User")) {
+      updateAttendance(codeInput, attendanceArr[attArrIndex]);
+    }
   };
   function createMeetingField(meetingData, disabled) {
     var fieldGroupC = document.createElement("div");
@@ -826,7 +838,10 @@
     catch (error) { }    
     for (var index = 0; index < meetingsData.length; index++) {
       var meeting = meetingsData[index];
-      var disabled = checkInArr(meeting["Members-Attn"], userEmail);
+      var disabled = false;
+      if (meeting["Members-Attn"]) {
+        disabled = checkInArr(meeting["Members-Attn"], userEmail);
+      }
       var meetingField = createMeetingField(meeting, disabled);
       meetingsGroupC.appendChild(meetingField);
     }

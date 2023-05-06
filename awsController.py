@@ -580,7 +580,7 @@ def edit_service_member(membersAdd, membersRemove, serviceId):
                     for userItem in user:
                         remove_user_service(userItem["email"], userItem["name"], serviceId)
 def add_service(name, id, club, description, endDate, endTime, hours, startDate, startTime, signUps, link, type, userId, signUpPeople):
-    serviceTable.put_item(data={ 
+    serviceTable.put_item(data={
         "name" : name,
         "id" : int(id),
         "Club" : int(club),
@@ -722,7 +722,10 @@ def last_log_id():
     return lastId
 def update_attendance(email, meetingClubId, meetingId):
     meetingItem = attnTable.get_item(clubid=int(meetingClubId), id=int(meetingId))
-    currentUsers = list(meetingItem["users"])
-    currentUsers.append("matthew.caldarola@student.allenisd.org")
-    meetingItem["users"] = currentUsers
+    if (meetingItem["users"]):
+        currentUsers = list(meetingItem["users"])
+        currentUsers.append(email)
+        meetingItem["users"] = currentUsers
+    else:
+        meetingItem["users"] = list([email])
     meetingItem.partial_save()

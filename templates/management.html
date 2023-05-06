@@ -1276,13 +1276,19 @@
     }
     return dateRangeString;
   }
-  function createAttendanceLEntry(dateRange, attendanceLName, attendanceLSectionId, attendanceLId) {
+  function createAttendanceLEntry(dateRange, attendanceLName, numOfAttendees, attendanceLSectionId, attendanceLId) {
     var attendanceLEntry = document.createElement("a");
     attendanceLEntry.classList.add("list-group-item", "list-group-item-action");
     attendanceLEntry.dataset.toggle = "list";
     attendanceLEntry.href = `#list-${attendanceLSectionId}-${attendanceLId}`;
     var attendanceLEntryTxt = document.createTextNode(`${dateRange} ${attendanceLName}`);
     attendanceLEntry.appendChild(attendanceLEntryTxt);
+    var attendanceLEntryBadge = document.createElement("span");
+    attendanceLEntryBadge.classList.add("badge", "badge-info", "badge-pill");
+    attendanceLEntryBadge.style.marginLeft = "10px";
+    attendanceLEntry.appendChild(attendanceLEntryBadge);
+    var attendanceLEntryBadgeTxt = document.createTextNode(`${numOfAttendees}`);
+    attendanceLEntryBadge.appendChild(attendanceLEntryBadgeTxt);
     return attendanceLEntry;
   }
   function memberEmailsFromIds(memberArr) {
@@ -1347,11 +1353,13 @@
     for (var index = 0; index < monthDataArr.length; index++) {
       var thisMonthDataObj = monthDataArr[index];
       var thisDateRange = getDateRange(thisMonthDataObj["Start-Date"], thisMonthDataObj["Start-Time"], thisMonthDataObj["End-Date"], thisMonthDataObj["End-Time"]);
-      var newAttendanceLEntry = createAttendanceLEntry(thisDateRange, thisMonthDataObj["Name"], sectionId, parseInt(thisMonthDataObj["ID"]));
+      var newAttendanceLEntry; 
       var newAttendanceLDesc;
       if (thisMonthDataObj["Members-Attn"] == undefined || thisMonthDataObj["Members-Attn"] == []) {
+        newAttendanceLEntry = createAttendanceLEntry(thisDateRange, thisMonthDataObj["Name"], 0, sectionId, parseInt(thisMonthDataObj["ID"]));
         newAttendanceLDesc = createAttendanceLDescription([], sectionId, parseInt(thisMonthDataObj["ID"]));
       } else {
+        newAttendanceLEntry = createAttendanceLEntry(thisDateRange, thisMonthDataObj["Name"], thisMonthDataObj["Members-Attn"].length, sectionId, parseInt(thisMonthDataObj["ID"]));
         newAttendanceLDesc = createAttendanceLDescription(thisMonthDataObj["Members-Attn"], sectionId, parseInt(thisMonthDataObj["ID"]));
       }
       attSectionC1List.appendChild(newAttendanceLEntry);
@@ -1902,7 +1910,7 @@
       oldEventsData = returnNewEventsData();
       var eventCardC = document.querySelector(".eventCards");
       var nextEventIds = getNextId(eventsArr);
-      var newEventCard = createEventCard("", nextEventIds, "", "0/00/0000", "00:00", "0/00/0000", "00:00", "", false);
+      var newEventCard = createEventCard("", nextEventIds, "", "00/00/0000", "00:00", "00/00/0000", "00:00", "", false);
       eventCardC.prepend(newEventCard);
       $(`#datetimepicker${nextEventIds}-1Event`).prop("data-td-target-input", "nearest");
       $(`#datetimepicker${nextEventIds}-1Event`).prop("data-td-target-toggle", "nearest");
@@ -1991,12 +1999,15 @@
       var startTimeArr = startTime.split(":");
       var startTimeHours = parseInt(startTimeArr[0]);
       var ampm = "AM";
+      var zeroString = "";
 
       if (startTimeHours > 12) {
         startTimeHours -= 12;
         ampm = "PM";
+      } else if (startTimeHours < 10) {
+        zeroString = "0";
       }
-      newStartTime = startTimeHours.toString() + ":" + startTimeArr[1] + " " + ampm;
+      newStartTime = zeroString + startTimeHours.toString() + ":" + startTimeArr[1] + " " + ampm;
     }
     var startTimingStr = startDate + " " + newStartTime;
     eventSDateInput.value = startTimingStr;
@@ -2195,7 +2206,7 @@
     var cleanedMonth = parseInt(endDateArr[0]).toString();
     var cleanedDay = parseInt(endDateArr[1]).toString();
     var cleanedYear = parseInt(endDateArr[2]).toString();
-    endDate = cleanedMonth + "/" + cleanedDay + "/" + cleanedYear;
+    //endDate = cleanedMonth + "/" + cleanedDay + "/" + cleanedYear;
     if (!onlyNumber(cleanedMonth) || !onlyNumber(cleanedDay) || !onlyNumber(cleanedYear)) {
       alert("Event end date typed incorrectly, use MM/DD/YYYY");
       endDate = "";
@@ -2206,7 +2217,11 @@
     if (endTiming[2] == "PM") {
       endTimeHour += 12;
     }
-    var endTime = endTimeHour.toString() + ":" + endTimeStrArr[1];
+    var zeroString = "";
+    if (endTimeHour < 10) {
+      zeroString = "0";
+    }
+    var endTime = zeroString + endTimeHour.toString() + ":" + endTimeStrArr[1];
     if (!onlyNumber(endTimeHour) || !onlyNumber(endTimeStrArr[1])) {
       alert("Event end time typed incorrectly, use HH:MM AM/PM");
       endTime = "";
@@ -2225,7 +2240,7 @@
     cleanedMonth = parseInt(startDateArr[0]).toString();
     cleanedDay = parseInt(startDateArr[1]).toString();
     cleanedYear = parseInt(startDateArr[2]).toString();
-    startDate = cleanedMonth + "/" + cleanedDay + "/" + cleanedYear;
+    //startDate = cleanedMonth + "/" + cleanedDay + "/" + cleanedYear;
     if (!onlyNumber(cleanedMonth) || !onlyNumber(cleanedDay) || !onlyNumber(cleanedYear)) {
       alert("Event start date typed incorrectly, use MM/DD/YYYY");
       startDate = "";
@@ -2236,7 +2251,11 @@
     if (startTiming[2] == "PM") {
       startTimeHour += 12;
     }
-    var startTime = startTimeHour.toString() + ":" + startTimeStrArr[1];
+    zeroString = "";
+    if (startTimeHour < 10) {
+      zeroString = "0";
+    }
+    var startTime = zeroString + startTimeHour.toString() + ":" + startTimeStrArr[1];
     if (!onlyNumber(startTimeHour) || !onlyNumber(startTimeStrArr[1])) {
       alert("Event start time typed incorrectly, use HH:MM AM/PM");
       startTime = "";
@@ -2375,6 +2394,8 @@
       } else { newServiceData[index]["Change-Name"] = "" }
     }
     var dataToSend = { "Services": newServiceData };
+    console.log("sending:");
+    console.log(dataToSend);
     $.ajax({
       type: "POST",
       url: "/management",
@@ -2388,7 +2409,7 @@
       oldServicesData = returnNewServicesData();
       var serviceCardC = document.querySelector(".serviceCards");
       var nextServiceIds = getNextServiceId(serviceArr);
-      var newServiceCard = createServiceCard("", nextServiceIds, "", "0/00/0000", "00:00", "0/00/0000", "00:00", "", "", "", "", false);
+      var newServiceCard = createServiceCard("", nextServiceIds, "", "00/00/0000", "00:00", "00/00/0000", "00:00", "", "", "", "", false);
       serviceCardC.prepend(newServiceCard);
       $(`#datetimepicker${nextServiceIds}-1Service`).prop("data-td-target-input", "nearest");
       $(`#datetimepicker${nextServiceIds}-1Service`).prop("data-td-target-toggle", "nearest");
