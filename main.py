@@ -17,11 +17,7 @@ import pathlib
 import string
 import pytz
 
-app = Flask(__name__, static_url_path="/static", static_folder="static")
 
-
-#app.config.from_envvar('CONFIG')
-#timeshift = app.config.get("TIMEZONE_SHIFT")
 
 class Club:
   def __init__(self, cid, name, sname, ctype, subtype, desc, site,
