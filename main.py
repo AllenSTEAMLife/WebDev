@@ -132,6 +132,10 @@ def route_about():
 def route_courses():
   return render_template("courses.html", email=get_user_email())
 
+@app.route("/tutoring")
+def route_tutoring():
+  return render_template("tutoring.html", email=get_user_email())
+
 @app.route("/day/json")
 def route_day_data():
   return jsonify(Items=awsController.get_day_items())
@@ -457,4 +461,3 @@ def logout():
 
 if __name__ == "__main__":
   app.run(threaded=True)
-

@@ -1,0 +1,301 @@
+{% extends "layout.html" %}
+
+{% block title %}Tutoring{% endblock %}
+
+{% block head %}
+  <style>
+    /*NOTE- These are the STEAM colors that we are using:
+      (Green)- Science: #8ac926
+      (Blue)- Technology: #1982c4
+      (Purple)- Engineering: #6a4c93
+      (Orange)- Art: #ffca3a
+      (Red)- Math: #ff595e
+    */
+    body {
+        width: 100%;
+    }
+    #tutoring-page{
+      display: flex;
+      padding-top: 10px;
+    }
+    .courses-categories{
+      width: 290px;
+      height: 900px;
+      border: 5px solid black;
+    }
+    .header {
+      text-align: center;
+      color: black;
+    }
+    hr{
+      background-color: black;
+    }
+    #science-button{
+      background-color: #63a11b;
+      border-radius: 5px;
+      color: white;
+      width: 275px;
+      height: 60px;
+      padding-left: 5px;
+      font-size: large;
+    }
+
+    #technology-button{
+      background-color: #1982c4;
+      border-radius: 5px;
+      color: white;
+      width: 275px;
+      height: 60px;
+      padding-left: 5px;
+      font-size: large;
+      margin-top: 100px; 
+    }
+
+    #engineering-button{
+      background-color: #6a4c93;
+      border-radius: 5px;
+      color: white;
+      width: 275px;
+      height: 60px;
+      padding-left: 5px;
+      font-size: large;
+      margin-top: 100px; 
+    }
+
+    #arts-button{
+      background-color: #DCA000;
+      border-radius: 5px;
+      color: white;
+      width: 275px;
+      height: 60px;
+      padding-left: 5px;
+      font-size: large;
+      margin-top: 100px; 
+    }
+    
+    #mathmatics-button{
+      background-color: #E22739;
+      border-radius: 5px;
+      color: white;
+      width: 275px;
+      height: 60px;
+      padding-left: 5px;
+      font-size: large;
+      margin-top: 100px; 
+    }
+/*
+Tutoring Information Box
+*/
+    #tutoring_info {
+      position: absolute;
+      top: 85px;
+      left: 300px;
+      width: 900px;
+      height: 900px;
+      background-color: lightgray;
+      padding: 20px;
+      display: none;
+    }
+
+   
+    
+
+</style>
+{% endblock %}
+
+{% block body %}
+
+{% include "components/nav.html" %}
+
+<section id="tutoring-page">
+  <br>
+  <div class="courses-categories">
+  <h3 class="header"> Courses </h3>
+  <hr>
+  <br>
+  <button type="button" id="science-button">Science</button>
+  <button type="button" id="technology-button">Technology</button>
+  <button type="button" id="engineering-button">Engineering</button>
+  <button type="button" id="arts-button">Arts</button>
+  <button type="button" id="mathmatics-button">Mathematics</button>
+  <div id="tutoring_info"></div>
+  </div>
+</section>
+
+{% include "components/footer.html" %}
+<script>
+ const science_button = document.getElementById("science-button");
+ const technology_button = document.getElementById("technology-button");
+ const engineering_button = document.getElementById("engineering-button");
+ const arts_button = document.getElementById("arts-button");
+ const mathmatics_button = document.getElementById("mathmatics-button");
+ const tutoring_info = document.getElementById("tutoring_info");
+
+ /* For each subject, the information for each course has to be entered, ex: Computer Science III
+   Should be placed under const technology_info
+  CSIII_courseName: "Computer Science III"
+  CSIII_teacherName: ""
+  CSIII_roomLocation: ""
+  CSIII_avaliableDutyAndTimes: ""
+
+*/
+ const science_info = {
+  title: "Science",
+  courseName: "Course Name:",
+  teacherName: "Teacher Name:",
+  roomLocation: "Room #:",
+  availableDaysAndTimes: "Days + Time:"
+ };
+ const technology_info = {
+  title: "Technology",
+  courseName: "Course Name:",
+  teacherName: "Teacher Name:",
+  roomLocation: "Room #:",
+  availableDaysAndTimes: "Days + Time:"
+  
+ };
+ const engineering_info = {
+  title: "Engineering",
+  courseName: "Course Name:",
+  teacherName: "Teacher Name:",
+  roomLocation: "Room #:",
+  availableDaysAndTimes: "Days + Time:"
+ };
+ const arts_info = {
+  title: "Art",
+  courseName: "Course Name:",
+  teacherName: "Teacher Name:",
+  roomLocation: "Room #:",
+  availableDaysAndTimes: "Days + Time:"
+ };
+ const mathmatics_info = {
+  title: "Mathmatics",
+  courseName: "Course Name:",
+  teacherName: "Teacher Name:",
+  roomLocation: "Room #:",
+  availableDaysAndTimes: "Days + Time:"
+ };
+
+
+
+//Each subject has its own function to render the information on the box. Please refer to the given structure to add more courses.
+
+ function displayScienceTutoringInfo(tutoringInfo) {
+  tutoring_info.innerHTML = `
+  <h1>${tutoringInfo.title} </h3>
+    <br>
+    <ul>
+      <li> <h2> ${tutoringInfo.courseName} </h2> </li>
+      <ul>
+        <li> ${tutoringInfo.teacherName} </li>
+        <li> ${tutoringInfo.roomLocation} </li>
+        <li> ${tutoringInfo.availableDaysAndTimes} </li>
+        </ul>
+
+      </ul>
+    
+    `;
+
+    tutoring_info.style.display="block";
+ 
+  }
+
+  function displayTechnologyTutoringInfo(tutoringInfo) {
+  tutoring_info.innerHTML = `
+  <h1>${tutoringInfo.title} </h3>
+    <br>
+    <ul>
+      <li> <h2> ${tutoringInfo.courseName} </h2> </li>
+      <ul>
+        <li> ${tutoringInfo.teacherName} </li>
+        <li> ${tutoringInfo.roomLocation} </li>
+        <li> ${tutoringInfo.availableDaysAndTimes} </li>
+        </ul>
+
+      </ul>
+    
+    `;
+
+    tutoring_info.style.display="block";
+ 
+  }
+
+  function displayEngineeringTutoringInfo(tutoringInfo) {
+  tutoring_info.innerHTML = `
+  <h1>${tutoringInfo.title} </h3>
+    <br>
+    <ul>
+      <li> <h2> ${tutoringInfo.courseName} </h2> </li>
+      <ul>
+        <li> ${tutoringInfo.teacherName} </li>
+        <li> ${tutoringInfo.roomLocation} </li>
+        <li> ${tutoringInfo.availableDaysAndTimes} </li>
+        </ul>
+
+      </ul>
+    
+    `;
+
+    tutoring_info.style.display="block";
+ 
+  }
+
+  function displayArtsTutoringInfo(tutoringInfo) {
+  tutoring_info.innerHTML = `
+  <h1>${tutoringInfo.title} </h3>
+    <br>
+    <ul>
+      <li> <h2> ${tutoringInfo.courseName} </h2> </li>
+      <ul>
+        <li> ${tutoringInfo.teacherName} </li>
+        <li> ${tutoringInfo.roomLocation} </li>
+        <li> ${tutoringInfo.availableDaysAndTimes} </li>
+        </ul>
+
+      </ul>
+    
+    `;
+
+    tutoring_info.style.display="block";
+ 
+  }
+
+  function displayMathmaticsTutoringInfo(tutoringInfo) {
+  tutoring_info.innerHTML = `
+  <h1>${tutoringInfo.title} </h3>
+    <br>
+    <ul>
+      <li> <h2> ${tutoringInfo.courseName} </h2> </li>
+      <ul>
+        <li> ${tutoringInfo.teacherName} </li>
+        <li> ${tutoringInfo.roomLocation} </li>
+        <li> ${tutoringInfo.availableDaysAndTimes} </li>
+        </ul>
+
+      </ul>
+    
+    `;
+
+    tutoring_info.style.display="block";
+ 
+  }
+
+
+  science_button.addEventListener("click", () => {
+    displayScienceTutoringInfo(science_info);
+  });
+  technology_button.addEventListener("click", () => {
+    displayTechnologyTutoringInfo(technology_info);
+  });
+  engineering_button.addEventListener("click", () => {
+    displayEngineeringTutoringInfo(engineering_info);
+  });
+  arts_button.addEventListener("click", () => {
+    displayArtsTutoringInfo(arts_info);
+  });
+  mathmatics_button.addEventListener("click", () => {
+    displayMathmaticsTutoringInfo(mathmatics_info);
+  });
+
+</script>
+{% endblock %}
